@@ -42,7 +42,7 @@ function DashboardPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold sm:text-3xl">Your moves</h1>
           <Button asChild className="rounded-xl">
-            <Link to="/book">
+            <Link to="/book" search={{ pickup: "", dropoff: "", item: "", when: "" }}>
               <Plus className="mr-1 h-4 w-4" />
               New move
             </Link>
@@ -58,7 +58,7 @@ function DashboardPage() {
                 Book your first haul and it will show up here.
               </p>
               <Button asChild className="mt-4 rounded-xl">
-                <Link to="/book">Get an estimate</Link>
+                <Link to="/book" search={{ pickup: "", dropoff: "", item: "", when: "" }}>Get an estimate</Link>
               </Button>
             </div>
           )}

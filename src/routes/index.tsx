@@ -119,7 +119,7 @@ function Landing() {
                   <Link to="/auth">Log in</Link>
                 </Button>
                 <Button asChild size="sm">
-                  <Link to="/book">Get a Quote</Link>
+                  <Link to="/book" search={{ pickup: "", dropoff: "", item: "", when: "" }}>Get a Quote</Link>
                 </Button>
               </>
             )}
@@ -321,7 +321,7 @@ function Landing() {
             <Link to="/auth" className="hover:text-foreground">
               Log in
             </Link>
-            <Link to="/book" className="hover:text-foreground">
+            <Link to="/book" search={{ pickup: "", dropoff: "", item: "", when: "" }} className="hover:text-foreground">
               Get a quote
             </Link>
           </div>

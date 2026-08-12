@@ -2,7 +2,6 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import {
   ClipboardList,
-  DollarSign,
   Home,
   LayoutDashboard,
   LogOut,
@@ -127,16 +126,6 @@ export function AppShell({
               </Link>
             );
           })}
-          {primaryRole === "mover" && (
-            <Link
-              to="/mover"
-              search={{ tab: "earnings" }}
-              className="flex flex-1 flex-col items-center gap-1 py-3 text-[11px] font-medium text-muted-foreground"
-            >
-              <DollarSign className="h-5 w-5" />
-              Earnings
-            </Link>
-          )}
         </div>
       </nav>
     </div>

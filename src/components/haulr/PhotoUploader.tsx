@@ -27,8 +27,11 @@ export function PhotoUploader({
         const path = `${folder}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.]/g, "-")}`;
         const { error } = await supabase.storage.from("job-photos").upload(path, file);
         if (error) throw error;
-        const { data } = supabase.storage.from("job-photos").getPublicUrl(path);
-        uploaded.push(data.publicUrl);
+        const { data, error: signError } = await supabase.storage
+          .from("job-photos")
+          .createSignedUrl(path, 60 * 60 * 24 * 365);
+        if (signError) throw signError;
+        uploaded.push(data.signedUrl);
       }
       onChange([...photos, ...uploaded]);
     } catch (error) {

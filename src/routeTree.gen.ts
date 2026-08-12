@@ -10,33 +10,128 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BookRouteImport } from './routes/book'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as MoverRouteImport } from './routes/mover'
+import { Route as MoverApplyRouteImport } from './routes/mover-apply'
+import { Route as JobsJobIdRouteImport } from './routes/jobs.$jobId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookRoute = BookRouteImport.update({
+  id: '/book',
+  path: '/book',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MoverRoute = MoverRouteImport.update({
+  id: '/mover',
+  path: '/mover',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MoverApplyRoute = MoverApplyRouteImport.update({
+  id: '/mover-apply',
+  path: '/mover-apply',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JobsJobIdRoute = JobsJobIdRouteImport.update({
+  id: '/jobs/$jobId',
+  path: '/jobs/$jobId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
+  '/book': typeof BookRoute
+  '/dashboard': typeof DashboardRoute
+  '/mover': typeof MoverRoute
+  '/mover-apply': typeof MoverApplyRoute
+  '/jobs/$jobId': typeof JobsJobIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
+  '/book': typeof BookRoute
+  '/dashboard': typeof DashboardRoute
+  '/mover': typeof MoverRoute
+  '/mover-apply': typeof MoverApplyRoute
+  '/jobs/$jobId': typeof JobsJobIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
+  '/book': typeof BookRoute
+  '/dashboard': typeof DashboardRoute
+  '/mover': typeof MoverRoute
+  '/mover-apply': typeof MoverApplyRoute
+  '/jobs/$jobId': typeof JobsJobIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/book'
+    | '/dashboard'
+    | '/mover'
+    | '/mover-apply'
+    | '/jobs/$jobId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/book'
+    | '/dashboard'
+    | '/mover'
+    | '/mover-apply'
+    | '/jobs/$jobId'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/book'
+    | '/dashboard'
+    | '/mover'
+    | '/mover-apply'
+    | '/jobs/$jobId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  AuthRoute: typeof AuthRoute
+  BookRoute: typeof BookRoute
+  DashboardRoute: typeof DashboardRoute
+  MoverRoute: typeof MoverRoute
+  MoverApplyRoute: typeof MoverApplyRoute
+  JobsJobIdRoute: typeof JobsJobIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +143,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/book': {
+      id: '/book'
+      path: '/book'
+      fullPath: '/book'
+      preLoaderRoute: typeof BookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mover': {
+      id: '/mover'
+      path: '/mover'
+      fullPath: '/mover'
+      preLoaderRoute: typeof MoverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mover-apply': {
+      id: '/mover-apply'
+      path: '/mover-apply'
+      fullPath: '/mover-apply'
+      preLoaderRoute: typeof MoverApplyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jobs/$jobId': {
+      id: '/jobs/$jobId'
+      path: '/jobs/$jobId'
+      fullPath: '/jobs/$jobId'
+      preLoaderRoute: typeof JobsJobIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  AuthRoute: AuthRoute,
+  BookRoute: BookRoute,
+  DashboardRoute: DashboardRoute,
+  MoverRoute: MoverRoute,
+  MoverApplyRoute: MoverApplyRoute,
+  JobsJobIdRoute: JobsJobIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

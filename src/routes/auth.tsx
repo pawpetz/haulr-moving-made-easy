@@ -45,12 +45,18 @@ function AuthPage() {
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Welcome back");
   };
 
   const signUp = async () => {
-    if (!fullName.trim()) return toast.error("Please enter your name");
+    if (!fullName.trim()) {
+      toast.error("Please enter your name");
+      return;
+    }
     setBusy(true);
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -62,7 +68,8 @@ function AuthPage() {
     });
     if (error) {
       setBusy(false);
-      return toast.error(error.message);
+      toast.error(error.message);
+      return;
     }
     const userId = data.user?.id;
     if (userId) {
@@ -84,11 +91,17 @@ function AuthPage() {
   };
 
   const resetPassword = async () => {
-    if (!email) return toast.error("Enter your email first");
+    if (!email) {
+      toast.error("Enter your email first");
+      return;
+    }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin,
     });
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Password reset email sent");
   };
 

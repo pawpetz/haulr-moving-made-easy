@@ -29,7 +29,7 @@ function DashboardPage() {
       const { data, error } = await supabase
         .from("jobs")
         .select("*")
-        .eq("customer_id", user!.id)
+        .eq("customer_user_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -79,7 +79,7 @@ function DashboardPage() {
                 </span>
               </div>
               <p className="mt-3 text-sm font-semibold">
-                {formatMoney(Number(job.total_amount ?? 0))}
+                {formatMoney(Number(job.customer_price ?? 0))}
               </p>
             </Link>
           ))}

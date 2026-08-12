@@ -53,7 +53,7 @@ function JobDetailPage() {
               <p className="text-sm text-muted-foreground">to {job.dropoff_address}</p>
             </div>
 
-            <MapPlaceholder />
+            <MapPlaceholder pickup={job.pickup_address} dropoff={job.dropoff_address} />
 
             <div className="surface-card p-5">
               <StatusTracker status={job.status as JobStatus} />
@@ -72,7 +72,7 @@ function JobDetailPage() {
               </p>
               <p className="flex justify-between border-t border-border pt-3 text-base">
                 <span className="font-semibold">Total</span>
-                <span className="font-extrabold">{formatMoney(Number(job.total_amount ?? 0))}</span>
+                <span className="font-extrabold">{formatMoney(Number(job.customer_price ?? 0))}</span>
               </p>
             </div>
           </div>

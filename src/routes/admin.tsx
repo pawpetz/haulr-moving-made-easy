@@ -21,8 +21,8 @@ function AdminPage() {
     queryKey: ["admin-overview"],
     queryFn: async () => {
       const [jobs, movers] = await Promise.all([
-        supabase.from("jobs").select("id, status, total_amount, platform_fee"),
-        supabase.from("mover_profiles").select("id, approval_status"),
+        supabase.from("jobs").select("id, status, customer_price, platform_fee"),
+        supabase.from("mover_profiles").select("id, status"),
       ]);
       if (jobs.error) throw jobs.error;
       if (movers.error) throw movers.error;
@@ -33,8 +33,8 @@ function AdminPage() {
   const jobs = data?.jobs ?? [];
   const movers = data?.movers ?? [];
   const revenue = jobs.reduce((sum, j) => sum + Number(j.platform_fee ?? 0), 0);
-  const gmv = jobs.reduce((sum, j) => sum + Number(j.total_amount ?? 0), 0);
-  const pending = movers.filter((m) => m.approval_status === "PENDING").length;
+  const gmv = jobs.reduce((sum, j) => sum + Number(j.customer_price ?? 0), 0);
+  const pending = movers.filter((m) => m.status === "PENDING").length;
 
   const stats = [
     { label: "Total jobs", value: String(jobs.length) },

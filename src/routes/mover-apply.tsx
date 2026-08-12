@@ -42,10 +42,9 @@ function MoverApplyPage() {
     setBusy(true);
     const { error } = await supabase.from("mover_profiles").insert({
       user_id: user.id,
-      service_city: city,
-      bio,
-      primary_vehicle: vehicleType,
-      approval_status: "PENDING",
+      full_name: user.email ?? "New mover",
+      email: user.email ?? null,
+      service_area: city,
     });
     setBusy(false);
     if (error) {

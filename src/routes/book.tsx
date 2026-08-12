@@ -43,18 +43,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
 interface BookSearch {
-  pickup?: string;
-  dropoff?: string;
-  item?: string;
-  when?: string;
+  pickup: string;
+  dropoff: string;
+  item: string;
+  when: string;
 }
 
 export const Route = createFileRoute("/book")({
   validateSearch: (search: Record<string, unknown>): BookSearch => ({
-    pickup: typeof search["pickup"] === "string" ? search["pickup"] : undefined,
-    dropoff: typeof search["dropoff"] === "string" ? search["dropoff"] : undefined,
-    item: typeof search["item"] === "string" ? search["item"] : undefined,
-    when: typeof search["when"] === "string" ? search["when"] : undefined,
+    pickup: typeof search["pickup"] === "string" ? search["pickup"] : "",
+    dropoff: typeof search["dropoff"] === "string" ? search["dropoff"] : "",
+    item: typeof search["item"] === "string" ? search["item"] : "",
+    when: typeof search["when"] === "string" ? search["when"] : "",
   }),
   head: () => ({
     meta: [
@@ -85,13 +85,13 @@ function BookPage() {
   const [vehicleTouched, setVehicleTouched] = useState(false);
 
   const [draft, setDraft] = useState<BookingDraft>({
-    pickupAddress: search.pickup ?? "",
-    dropoffAddress: search.dropoff ?? "",
+    pickupAddress: search.pickup,
+    dropoffAddress: search.dropoff,
     distanceMiles: 0,
     items: [
       {
         id: crypto.randomUUID(),
-        itemType: search.item ?? "Couch",
+        itemType: search.item || "Couch",
         quantity: 1,
         size: "LARGE",
       },
@@ -360,7 +360,9 @@ function BookPage() {
                         update({
                           items: draft.items.map((i) =>
                             i.id === item.id
-                              ? { ...i, weightLbs: e.target.value ? Number(e.target.value) : undefined }
+                              ? e.target.value
+                                ? { ...i, weightLbs: Number(e.target.value) }
+                                : { id: i.id, itemType: i.itemType, quantity: i.quantity, size: i.size }
                               : i,
                           ),
                         })

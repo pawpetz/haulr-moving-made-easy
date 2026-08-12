@@ -1,0 +1,3 @@
+CREATE POLICY "authenticated upload job photos" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'job-photos');
+CREATE POLICY "authenticated read job photos" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'job-photos');
+CREATE POLICY "authenticated delete own job photos" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'job-photos' AND owner = auth.uid());

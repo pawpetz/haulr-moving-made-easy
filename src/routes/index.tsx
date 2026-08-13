@@ -136,7 +136,7 @@ function Landing() {
           alt="Two Haulr movers carrying a sofa into a pickup truck at golden hour"
           width={1280}
           height={1280}
-          className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover object-center"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
         />
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(100deg,color-mix(in_oklab,var(--ink)_92%,transparent)_10%,color-mix(in_oklab,var(--ink)_72%,transparent)_50%,color-mix(in_oklab,var(--ink)_40%,transparent)_100%)]" />
         <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 text-ink-foreground lg:grid-cols-[1.05fr_1fr] lg:py-20">

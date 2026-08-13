@@ -133,12 +133,12 @@ function Landing() {
       <section className="relative isolate overflow-hidden bg-ink">
         <img
           src={heroMovers}
-          alt="Two Haulr movers carrying a sofa into a pickup truck at golden hour"
-          width={1280}
-          height={1280}
+          alt="Two Haulr movers carrying a grey sofa into an open box truck on a sunny street"
+          width={1600}
+          height={1104}
           className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[70%_50%]"
         />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,color-mix(in_oklab,var(--ink)_92%,transparent)_0%,color-mix(in_oklab,var(--ink)_60%,transparent)_45%,transparent_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,color-mix(in_oklab,var(--ink)_96%,transparent)_0%,color-mix(in_oklab,var(--ink)_88%,transparent)_30%,color-mix(in_oklab,var(--ink)_45%,transparent)_62%,color-mix(in_oklab,var(--ink)_18%,transparent)_100%)]" />
         <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 text-ink-foreground lg:grid-cols-[1.05fr_1fr] lg:py-20">
           <div className="flex flex-col justify-center">
             <span className="mb-5 inline-flex w-fit items-center gap-2 rounded-full bg-ink-foreground/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide">

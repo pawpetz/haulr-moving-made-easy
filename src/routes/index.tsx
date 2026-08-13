@@ -287,6 +287,32 @@ function Landing() {
         </div>
       </section>
 
+      <section className="mx-auto grid w-full max-w-6xl items-center gap-8 px-4 pb-4 md:grid-cols-2">
+        <img
+          src={truckLoading}
+          alt="Box truck loaded with wrapped furniture and moving blankets on a suburban street"
+          width={1280}
+          height={864}
+          loading="lazy"
+          className="h-64 w-full rounded-3xl object-cover shadow-lift sm:h-80"
+        />
+        <div>
+          <h2 className="text-3xl font-bold">Right truck, right crew, every time</h2>
+          <p className="mt-3 text-muted-foreground">
+            From a single armchair in a pickup to a full studio apartment in a box truck, Haulr
+            matches your load with movers who bring blankets, straps, and dollies as standard.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium">
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4 text-accent" /> Background-checked crews
+            </span>
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="h-4 w-4 text-accent" /> Damage protection included
+            </span>
+          </div>
+        </div>
+      </section>
+
       <section id="how" className="bg-secondary/60 py-16">
         <div className="mx-auto w-full max-w-6xl px-4">
           <h2 className="text-3xl font-bold">How it works</h2>

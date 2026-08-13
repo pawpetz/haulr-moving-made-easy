@@ -17,6 +17,9 @@ import {
   WashingMachine,
 } from "lucide-react";
 import { Logo } from "@/components/haulr/Logo";
+import heroMovers from "@/assets/hero-movers.jpg";
+import truckLoading from "@/assets/truck-loading.jpg";
+import moverPortrait from "@/assets/mover-portrait.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -127,8 +130,16 @@ function Landing() {
         </div>
       </header>
 
-      <section className="hero-gradient">
-        <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 text-ink-foreground lg:grid-cols-[1.05fr_1fr] lg:py-20">
+      <section className="relative isolate overflow-hidden bg-ink">
+        <img
+          src={heroMovers}
+          alt="Two Haulr movers carrying a grey sofa into an open box truck on a sunny street"
+          width={1600}
+          height={1104}
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[70%_50%]"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,color-mix(in_oklab,var(--ink)_96%,transparent)_0%,color-mix(in_oklab,var(--ink)_88%,transparent)_30%,color-mix(in_oklab,var(--ink)_45%,transparent)_62%,color-mix(in_oklab,var(--ink)_18%,transparent)_100%)]" />
+        <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 text-ink-foreground lg:grid-cols-[1.05fr_1fr] lg:py-20">
           <div className="flex flex-col justify-center">
             <span className="mb-5 inline-flex w-fit items-center gap-2 rounded-full bg-ink-foreground/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide">
               <Sparkles className="h-3.5 w-3.5 text-accent" />
@@ -276,6 +287,32 @@ function Landing() {
         </div>
       </section>
 
+      <section className="mx-auto grid w-full max-w-6xl items-center gap-8 px-4 pb-4 md:grid-cols-2">
+        <img
+          src={truckLoading}
+          alt="Box truck loaded with wrapped furniture and moving blankets on a suburban street"
+          width={1280}
+          height={864}
+          loading="lazy"
+          className="h-64 w-full rounded-3xl object-cover shadow-lift sm:h-80"
+        />
+        <div>
+          <h2 className="text-3xl font-bold">Right truck, right crew, every time</h2>
+          <p className="mt-3 text-muted-foreground">
+            From a single armchair in a pickup to a full studio apartment in a box truck, Haulr
+            matches your load with movers who bring blankets, straps, and dollies as standard.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium">
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4 text-accent" /> Background-checked crews
+            </span>
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="h-4 w-4 text-accent" /> Damage protection included
+            </span>
+          </div>
+        </div>
+      </section>
+
       <section id="how" className="bg-secondary/60 py-16">
         <div className="mx-auto w-full max-w-6xl px-4">
           <h2 className="text-3xl font-bold">How it works</h2>
@@ -294,20 +331,32 @@ function Landing() {
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-4 py-16">
-        <div className="ink-panel flex flex-col items-start gap-6 rounded-3xl p-8 sm:p-12 md:flex-row md:items-center md:justify-between">
-          <div>
+        <div className="ink-panel grid items-center gap-8 overflow-hidden rounded-3xl md:grid-cols-[1.2fr_1fr]">
+          <div className="p-8 sm:p-12">
             <h2 className="text-2xl font-bold sm:text-3xl">Own a truck? Start earning this week.</h2>
             <p className="mt-2 max-w-lg text-ink-foreground/75">
               Movers keep 80% of every job. Set your own hours, go online when you want, get paid
               after each completed haul.
             </p>
+            <Button
+              asChild
+              size="lg"
+              className="mt-6 h-13 rounded-xl bg-accent px-7 text-base text-accent-foreground hover:bg-accent/90"
+            >
+              <Link to="/mover-apply">
+                <Truck className="mr-1 h-4 w-4" />
+                Become a Mover
+              </Link>
+            </Button>
           </div>
-          <Button asChild size="lg" className="h-13 rounded-xl bg-accent px-7 text-base text-accent-foreground hover:bg-accent/90">
-            <Link to="/mover-apply">
-              <Truck className="mr-1 h-4 w-4" />
-              Become a Mover
-            </Link>
-          </Button>
+          <img
+            src={moverPortrait}
+            alt="Smiling Haulr mover wheeling a washing machine on a hand truck"
+            width={1024}
+            height={1024}
+            loading="lazy"
+            className="h-full max-h-80 w-full object-cover"
+          />
         </div>
       </section>
 

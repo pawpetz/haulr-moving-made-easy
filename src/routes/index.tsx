@@ -138,7 +138,7 @@ function Landing() {
           height={1280}
           className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
         />
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(100deg,color-mix(in_oklab,var(--ink)_92%,transparent)_10%,color-mix(in_oklab,var(--ink)_72%,transparent)_50%,color-mix(in_oklab,var(--ink)_40%,transparent)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,color-mix(in_oklab,var(--ink)_94%,transparent)_8%,color-mix(in_oklab,var(--ink)_75%,transparent)_48%,color-mix(in_oklab,var(--ink)_35%,transparent)_100%)]" />
         <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 text-ink-foreground lg:grid-cols-[1.05fr_1fr] lg:py-20">
           <div className="flex flex-col justify-center">
             <span className="mb-5 inline-flex w-fit items-center gap-2 rounded-full bg-ink-foreground/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide">

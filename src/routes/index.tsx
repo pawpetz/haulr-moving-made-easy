@@ -331,20 +331,32 @@ function Landing() {
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-4 py-16">
-        <div className="ink-panel flex flex-col items-start gap-6 rounded-3xl p-8 sm:p-12 md:flex-row md:items-center md:justify-between">
-          <div>
+        <div className="ink-panel grid items-center gap-8 overflow-hidden rounded-3xl md:grid-cols-[1.2fr_1fr]">
+          <div className="p-8 sm:p-12">
             <h2 className="text-2xl font-bold sm:text-3xl">Own a truck? Start earning this week.</h2>
             <p className="mt-2 max-w-lg text-ink-foreground/75">
               Movers keep 80% of every job. Set your own hours, go online when you want, get paid
               after each completed haul.
             </p>
+            <Button
+              asChild
+              size="lg"
+              className="mt-6 h-13 rounded-xl bg-accent px-7 text-base text-accent-foreground hover:bg-accent/90"
+            >
+              <Link to="/mover-apply">
+                <Truck className="mr-1 h-4 w-4" />
+                Become a Mover
+              </Link>
+            </Button>
           </div>
-          <Button asChild size="lg" className="h-13 rounded-xl bg-accent px-7 text-base text-accent-foreground hover:bg-accent/90">
-            <Link to="/mover-apply">
-              <Truck className="mr-1 h-4 w-4" />
-              Become a Mover
-            </Link>
-          </Button>
+          <img
+            src={moverPortrait}
+            alt="Smiling Haulr mover wheeling a washing machine on a hand truck"
+            width={1024}
+            height={1024}
+            loading="lazy"
+            className="h-full max-h-80 w-full object-cover"
+          />
         </div>
       </section>
 

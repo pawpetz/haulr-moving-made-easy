@@ -34,7 +34,14 @@ import {
   SERVICE_LEVELS,
   VEHICLES,
 } from "@/lib/constants";
-import type { AccessType, AddonKey, BookingDraft, ItemSize, ServiceLevel, VehicleType } from "@/lib/types";
+import type {
+  AccessType,
+  AddonKey,
+  BookingDraft,
+  ItemSize,
+  ServiceLevel,
+  VehicleType,
+} from "@/lib/types";
 import { calculateEstimate, estimateDistance, formatMoney, recommendVehicle } from "@/lib/pricing";
 import { fetchPricingMap } from "@/services/pricing.service";
 import { createJob, updateJobStatus } from "@/services/jobs.service";
@@ -140,7 +147,8 @@ function BookPage() {
   const update = (patch: Partial<BookingDraft>) => setDraft((prev) => ({ ...prev, ...patch }));
 
   const canContinue = () => {
-    if (step === 0) return draft.pickupAddress.trim().length > 3 && draft.dropoffAddress.trim().length > 3;
+    if (step === 0)
+      return draft.pickupAddress.trim().length > 3 && draft.dropoffAddress.trim().length > 3;
     if (step === 1) return draft.items.length > 0 && draft.items.every((i) => i.itemType);
     return true;
   };
@@ -220,7 +228,9 @@ function BookPage() {
               </div>
               <div className="rounded-xl bg-secondary px-4 py-3 text-sm">
                 Estimated distance:{" "}
-                <span className="font-semibold">{distance ? `${distance.toFixed(1)} miles` : "—"}</span>
+                <span className="font-semibold">
+                  {distance ? `${distance.toFixed(1)} miles` : "—"}
+                </span>
               </div>
             </div>
             <div className="surface-card space-y-3 p-5">
@@ -231,7 +241,9 @@ function BookPage() {
                   onClick={() => update({ asap: true, scheduledFor: null })}
                   className={cn(
                     "h-12 rounded-xl border text-sm font-semibold",
-                    draft.asap ? "border-accent bg-accent/15" : "border-border text-muted-foreground",
+                    draft.asap
+                      ? "border-accent bg-accent/15"
+                      : "border-border text-muted-foreground",
                   )}
                 >
                   ASAP
@@ -241,7 +253,9 @@ function BookPage() {
                   onClick={() => update({ asap: false })}
                   className={cn(
                     "h-12 rounded-xl border text-sm font-semibold",
-                    !draft.asap ? "border-accent bg-accent/15" : "border-border text-muted-foreground",
+                    !draft.asap
+                      ? "border-accent bg-accent/15"
+                      : "border-border text-muted-foreground",
                   )}
                 >
                   Schedule for later
@@ -275,9 +289,7 @@ function BookPage() {
                       variant="ghost"
                       size="icon"
                       aria-label="Remove item"
-                      onClick={() =>
-                        update({ items: draft.items.filter((i) => i.id !== item.id) })
-                      }
+                      onClick={() => update({ items: draft.items.filter((i) => i.id !== item.id) })}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -362,7 +374,12 @@ function BookPage() {
                             i.id === item.id
                               ? e.target.value
                                 ? { ...i, weightLbs: Number(e.target.value) }
-                                : { id: i.id, itemType: i.itemType, quantity: i.quantity, size: i.size }
+                                : {
+                                    id: i.id,
+                                    itemType: i.itemType,
+                                    quantity: i.quantity,
+                                    size: i.size,
+                                  }
                               : i,
                           ),
                         })

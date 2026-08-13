@@ -5,12 +5,7 @@ export type ServiceLevel = "FULL_SERVICE" | "LABOR_ONLY" | "CURBSIDE" | "ROOM_OF
 export type AccessType = "GROUND" | "STAIRS" | "ELEVATOR" | "LOADING_DOCK";
 
 export type AddonKey =
-  | "extra_mover"
-  | "disassembly"
-  | "assembly"
-  | "additional_stop"
-  | "heavy_item"
-  | "stairs";
+  "extra_mover" | "disassembly" | "assembly" | "additional_stop" | "heavy_item" | "stairs";
 
 export type JobStatus =
   | "REQUESTED"

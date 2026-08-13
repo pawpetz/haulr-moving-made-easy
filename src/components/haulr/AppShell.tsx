@@ -52,7 +52,8 @@ export function AppShell({
 }) {
   const { primaryRole, signOut, profile } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const nav = primaryRole === "admin" ? ADMIN_NAV : primaryRole === "mover" ? MOVER_NAV : CUSTOMER_NAV;
+  const nav =
+    primaryRole === "admin" ? ADMIN_NAV : primaryRole === "mover" ? MOVER_NAV : CUSTOMER_NAV;
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-20 md:pb-0">
@@ -87,7 +88,12 @@ export function AppShell({
             <span className="hidden text-sm text-muted-foreground sm:inline">
               {profile?.full_name || "Account"}
             </span>
-            <Button variant="ghost" size="icon" aria-label="Sign out" onClick={() => void signOut()}>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Sign out"
+              onClick={() => void signOut()}
+            >
               <LogOut className="h-4 w-4" />
             </Button>
           </div>

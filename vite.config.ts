@@ -12,4 +12,9 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Default preset from @lovable.dev/vite-tanstack-config is "cloudflare-module".
+  // Override to "vercel" when deploying to Vercel instead of Cloudflare.
+  nitro: {
+    preset: "vercel",
+  },
 });

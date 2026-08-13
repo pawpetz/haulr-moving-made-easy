@@ -71,7 +71,11 @@ const SERVICES = [
     title: "Labor Only",
     copy: "Need help loading or unloading? Hire movers without a truck.",
   },
-  { icon: Trash2, title: "Junk Removal", copy: "Request pickup and hauling of unwanted large items." },
+  {
+    icon: Trash2,
+    title: "Junk Removal",
+    copy: "Request pickup and hauling of unwanted large items.",
+  },
 ];
 
 const STEPS = [
@@ -112,7 +116,15 @@ function Landing() {
           <div className="flex items-center gap-2">
             {user ? (
               <Button asChild size="sm">
-                <Link to={primaryRole === "mover" ? "/mover" : primaryRole === "admin" ? "/admin" : "/dashboard"}>
+                <Link
+                  to={
+                    primaryRole === "mover"
+                      ? "/mover"
+                      : primaryRole === "admin"
+                        ? "/admin"
+                        : "/dashboard"
+                  }
+                >
                   Dashboard
                 </Link>
               </Button>
@@ -122,7 +134,9 @@ function Landing() {
                   <Link to="/auth">Log in</Link>
                 </Button>
                 <Button asChild size="sm">
-                  <Link to="/book" search={{ pickup: "", dropoff: "", item: "", when: "" }}>Get a Quote</Link>
+                  <Link to="/book" search={{ pickup: "", dropoff: "", item: "", when: "" }}>
+                    Get a Quote
+                  </Link>
                 </Button>
               </>
             )}
@@ -275,7 +289,10 @@ function Landing() {
           {SERVICES.map((service) => {
             const Icon = service.icon;
             return (
-              <div key={service.title} className="surface-card p-6 transition-shadow hover:shadow-lift">
+              <div
+                key={service.title}
+                className="surface-card p-6 transition-shadow hover:shadow-lift"
+              >
                 <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-primary">
                   <Icon className="h-5 w-5" />
                 </span>
@@ -333,7 +350,9 @@ function Landing() {
       <section className="mx-auto w-full max-w-6xl px-4 py-16">
         <div className="ink-panel grid items-center gap-8 overflow-hidden rounded-3xl md:grid-cols-[1.2fr_1fr]">
           <div className="p-8 sm:p-12">
-            <h2 className="text-2xl font-bold sm:text-3xl">Own a truck? Start earning this week.</h2>
+            <h2 className="text-2xl font-bold sm:text-3xl">
+              Own a truck? Start earning this week.
+            </h2>
             <p className="mt-2 max-w-lg text-ink-foreground/75">
               Movers keep 80% of every job. Set your own hours, go online when you want, get paid
               after each completed haul.
@@ -370,7 +389,11 @@ function Landing() {
             <Link to="/auth" className="hover:text-foreground">
               Log in
             </Link>
-            <Link to="/book" search={{ pickup: "", dropoff: "", item: "", when: "" }} className="hover:text-foreground">
+            <Link
+              to="/book"
+              search={{ pickup: "", dropoff: "", item: "", when: "" }}
+              className="hover:text-foreground"
+            >
               Get a quote
             </Link>
           </div>

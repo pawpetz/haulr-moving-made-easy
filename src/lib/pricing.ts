@@ -150,24 +150,28 @@ export function calculateEstimate(input: EstimateInput, rulesInput?: PricingRule
     });
   }
 
+  // The mover is paid the subtotal (their labor + vehicle + distance work).
+  // The platform commission is added on top as a separate line so the
+  // customer-facing breakdown, the stored job record, and the mover's
+  // payout all agree on the same numbers.
   const subtotal = lines.reduce((sum, line) => sum + line.amount, 0);
   const commission = (rules["platform_commission"] ?? 20) / 100;
   const platformFee = round2(subtotal * commission);
-  const total = round2(subtotal + platformFee * 0.25);
+  const total = round2(subtotal + platformFee);
 
   lines.push({
     key: "platform_fee",
     label: "Platform fee",
     detail: "Booking, support & insurance",
-    amount: round2(platformFee * 0.25),
+    amount: platformFee,
   });
 
   return {
     lines,
     laborHours,
     total,
-    platformFee: round2(total * commission),
-    moverPayout: round2(total - total * commission),
+    platformFee,
+    moverPayout: round2(subtotal),
     estimatedMinutes: Math.round(laborHours * 60),
     loadUnits: totalLoadUnits(input.items),
   };

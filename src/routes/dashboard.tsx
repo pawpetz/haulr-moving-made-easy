@@ -58,7 +58,9 @@ function DashboardPage() {
                 Book your first haul and it will show up here.
               </p>
               <Button asChild className="mt-4 rounded-xl">
-                <Link to="/book" search={{ pickup: "", dropoff: "", item: "", when: "" }}>Get an estimate</Link>
+                <Link to="/book" search={{ pickup: "", dropoff: "", item: "", when: "" }}>
+                  Get an estimate
+                </Link>
               </Button>
             </div>
           )}

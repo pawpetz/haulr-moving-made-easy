@@ -72,7 +72,9 @@ function JobDetailPage() {
               </p>
               <p className="flex justify-between border-t border-border pt-3 text-base">
                 <span className="font-semibold">Total</span>
-                <span className="font-extrabold">{formatMoney(Number(job.customer_price ?? 0))}</span>
+                <span className="font-extrabold">
+                  {formatMoney(Number(job.customer_price ?? 0))}
+                </span>
               </p>
             </div>
           </div>

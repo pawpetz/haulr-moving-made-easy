@@ -31,7 +31,13 @@ export interface MoverApplication {
   insurance_policy: string;
   service_area: string;
   photo_url: string | null;
-  vehicle: { type: VehicleType; year: number; make: string; model: string; photo_url: string | null };
+  vehicle: {
+    type: VehicleType;
+    year: number;
+    make: string;
+    model: string;
+    photo_url: string | null;
+  };
 }
 
 export async function submitMoverApplication(userId: string, app: MoverApplication) {

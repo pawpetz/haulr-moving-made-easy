@@ -35,9 +35,7 @@ function MoverPage() {
     <AppShell>
       <div className="mx-auto w-full max-w-3xl px-4 py-6">
         <h1 className="text-2xl font-bold sm:text-3xl">Available hauls</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Jobs waiting for a mover right now.
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">Jobs waiting for a mover right now.</p>
 
         <div className="mt-6 space-y-3">
           {isLoading && <p className="text-sm text-muted-foreground">Loading jobs…</p>}

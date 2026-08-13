@@ -18,10 +18,9 @@ export async function fetchPricingMap(): Promise<PricingRules> {
   try {
     const rows = await fetchPricingRules();
     if (!rows.length) return DEFAULT_PRICING;
-    return rows.reduce<PricingRules>(
-      (acc, row) => ({ ...acc, [row.key]: row.value }),
-      { ...DEFAULT_PRICING },
-    );
+    return rows.reduce<PricingRules>((acc, row) => ({ ...acc, [row.key]: row.value }), {
+      ...DEFAULT_PRICING,
+    });
   } catch {
     return DEFAULT_PRICING;
   }

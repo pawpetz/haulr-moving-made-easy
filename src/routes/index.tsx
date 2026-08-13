@@ -153,8 +153,8 @@ function Landing() {
           className="pointer-events-none absolute inset-0 h-full w-full object-cover object-[70%_50%]"
         />
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,color-mix(in_oklab,var(--ink)_96%,transparent)_0%,color-mix(in_oklab,var(--ink)_88%,transparent)_30%,color-mix(in_oklab,var(--ink)_45%,transparent)_62%,color-mix(in_oklab,var(--ink)_18%,transparent)_100%)]" />
-        <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 text-ink-foreground lg:grid-cols-[1.05fr_1fr] lg:py-20">
-          <div className="flex flex-col justify-center">
+        <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 lg:grid-cols-[1.05fr_1fr] lg:py-20">
+          <div className="flex flex-col justify-center text-ink-foreground">
             <span className="mb-5 inline-flex w-fit items-center gap-2 rounded-full bg-ink-foreground/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide">
               <Sparkles className="h-3.5 w-3.5 text-accent" />
               On-demand moving marketplace
@@ -195,7 +195,7 @@ function Landing() {
             </div>
           </div>
 
-          <div className="surface-card space-y-4 p-5 sm:p-6">
+          <div className="surface-card space-y-4 p-5 text-foreground sm:p-6">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                 Pickup

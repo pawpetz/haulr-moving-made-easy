@@ -130,7 +130,7 @@ function Landing() {
         </div>
       </header>
 
-      <section className="hero-gradient relative isolate overflow-hidden">
+      <section className="relative isolate overflow-hidden bg-ink">
         <img
           src={heroMovers}
           alt="Two Haulr movers carrying a sofa into a pickup truck at golden hour"

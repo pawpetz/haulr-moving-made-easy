@@ -17,6 +17,9 @@ import {
   WashingMachine,
 } from "lucide-react";
 import { Logo } from "@/components/haulr/Logo";
+import heroMovers from "@/assets/hero-movers.jpg";
+import truckLoading from "@/assets/truck-loading.jpg";
+import moverPortrait from "@/assets/mover-portrait.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

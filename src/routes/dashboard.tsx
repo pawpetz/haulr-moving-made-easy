@@ -1,11 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { ArrowRight, Package, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AppShell } from "@/components/haulr/AppShell";
+import { StatusTracker, StatusPill } from "@/components/haulr/StatusTracker";
+import { MapPlaceholder } from "@/components/haulr/MapPlaceholder";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/lib/pricing";
+import type { JobStatus } from "@/lib/types";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -19,8 +22,19 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
 
+const OPEN_STATUSES: JobStatus[] = [
+  "REQUESTED",
+  "SEARCHING",
+  "MOVER_ASSIGNED",
+  "MOVER_EN_ROUTE",
+  "MOVER_ARRIVED",
+  "LOADING",
+  "IN_TRANSIT",
+  "UNLOADING",
+];
+
 function DashboardPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["my-jobs", user?.id],
@@ -36,57 +50,126 @@ function DashboardPage() {
     },
   });
 
+  const activeJobs = jobs.filter((job) => OPEN_STATUSES.includes(job.status as JobStatus));
+  const pastJobs = jobs.filter((job) => !OPEN_STATUSES.includes(job.status as JobStatus));
+  const completedCount = jobs.filter((job) => job.status === "COMPLETED").length;
+  const totalSpent = jobs
+    .filter((job) => job.status === "COMPLETED")
+    .reduce((sum, job) => sum + Number(job.customer_price ?? 0), 0);
+
+  const firstName = profile?.full_name?.split(" ")[0];
+
   return (
-    <AppShell>
-      <div className="mx-auto w-full max-w-3xl px-4 py-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold sm:text-3xl">Your moves</h1>
-          <Button asChild className="rounded-xl">
+    <AppShell
+      title={firstName ? `Hey ${firstName}` : "Your moves"}
+      subtitle={
+        jobs.length > 0
+          ? `${completedCount} move${completedCount === 1 ? "" : "s"} completed · ${formatMoney(totalSpent)} total`
+          : "Book your first move to get started"
+      }
+      action={
+        <Button asChild className="rounded-xl">
+          <Link to="/book" search={{ pickup: "", dropoff: "", item: "", when: "" }}>
+            <Plus className="mr-1.5 h-4 w-4" />
+            New move
+          </Link>
+        </Button>
+      }
+    >
+      {isLoading && (
+        <div className="space-y-3">
+          <div className="surface-card h-40 animate-pulse" />
+          <div className="surface-card h-20 animate-pulse" />
+        </div>
+      )}
+
+      {!isLoading && jobs.length === 0 && (
+        <div className="surface-card flex flex-col items-center gap-3 p-10 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
+            <Package className="h-5 w-5 text-muted-foreground" />
+          </div>
+          <div>
+            <p className="font-semibold">No moves yet</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Book your first haul and it'll show up here with live tracking.
+            </p>
+          </div>
+          <Button asChild className="mt-2 rounded-xl">
             <Link to="/book" search={{ pickup: "", dropoff: "", item: "", when: "" }}>
-              <Plus className="mr-1 h-4 w-4" />
-              New move
+              Get an estimate
             </Link>
           </Button>
         </div>
+      )}
 
-        <div className="mt-6 space-y-3">
-          {isLoading && <p className="text-sm text-muted-foreground">Loading your moves…</p>}
-          {!isLoading && jobs.length === 0 && (
-            <div className="surface-card p-8 text-center">
-              <p className="font-semibold">No moves yet</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Book your first haul and it will show up here.
-              </p>
-              <Button asChild className="mt-4 rounded-xl">
-                <Link to="/book" search={{ pickup: "", dropoff: "", item: "", when: "" }}>
-                  Get an estimate
+      {!isLoading && jobs.length > 0 && (
+        <div className="space-y-8">
+          {activeJobs.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Active
+              </h2>
+              {activeJobs.map((job) => (
+                <Link
+                  key={job.id}
+                  to="/jobs/$jobId"
+                  params={{ jobId: job.id }}
+                  className="surface-card block space-y-4 p-5 transition-colors hover:border-accent"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="font-semibold">{job.pickup_address}</p>
+                      <p className="text-sm text-muted-foreground">to {job.dropoff_address}</p>
+                    </div>
+                    <StatusPill status={job.status as JobStatus} />
+                  </div>
+                  <MapPlaceholder pickup={job.pickup_address} dropoff={job.dropoff_address} />
+                  <StatusTracker status={job.status as JobStatus} />
+                  <div className="flex items-center justify-between border-t border-border pt-3 text-sm">
+                    <span className="font-semibold">
+                      {formatMoney(Number(job.customer_price ?? 0))}
+                    </span>
+                    <span className="flex items-center gap-1 font-medium text-accent-foreground">
+                      Track move <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
+                  </div>
                 </Link>
-              </Button>
-            </div>
+              ))}
+            </section>
           )}
-          {jobs.map((job) => (
-            <Link
-              key={job.id}
-              to="/jobs/$jobId"
-              params={{ jobId: job.id }}
-              className="surface-card block p-5 transition-colors hover:border-accent"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-semibold">{job.pickup_address}</p>
-                  <p className="text-sm text-muted-foreground">to {job.dropoff_address}</p>
-                </div>
-                <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold">
-                  {String(job.status).replaceAll("_", " ").toLowerCase()}
-                </span>
+
+          {pastJobs.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                History
+              </h2>
+              <div className="space-y-2">
+                {pastJobs.map((job) => (
+                  <Link
+                    key={job.id}
+                    to="/jobs/$jobId"
+                    params={{ jobId: job.id }}
+                    className="surface-card flex items-center justify-between gap-4 p-4 transition-colors hover:border-accent"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold">{job.pickup_address}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        to {job.dropoff_address}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-3">
+                      <span className="text-sm font-semibold">
+                        {formatMoney(Number(job.customer_price ?? 0))}
+                      </span>
+                      <StatusPill status={job.status as JobStatus} />
+                    </div>
+                  </Link>
+                ))}
               </div>
-              <p className="mt-3 text-sm font-semibold">
-                {formatMoney(Number(job.customer_price ?? 0))}
-              </p>
-            </Link>
-          ))}
+            </section>
+          )}
         </div>
-      </div>
+      )}
     </AppShell>
   );
 }

@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -86,10 +86,24 @@ const STEPS = ["Locations", "Items", "Access", "Service", "Vehicle", "Estimate"]
 function BookPage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [vehicleTouched, setVehicleTouched] = useState(false);
+
+  useEffect(() => {
+    if (authLoading || user) return;
+    const params = new URLSearchParams();
+    if (search.pickup) params.set("pickup", search.pickup);
+    if (search.dropoff) params.set("dropoff", search.dropoff);
+    if (search.item) params.set("item", search.item);
+    if (search.when) params.set("when", search.when);
+    const query = params.toString();
+    void navigate({
+      to: "/auth",
+      search: { redirect: `/book${query ? `?${query}` : ""}` },
+    });
+  }, [authLoading, user, navigate, search]);
 
   const [draft, setDraft] = useState<BookingDraft>({
     pickupAddress: search.pickup,
@@ -156,7 +170,7 @@ function BookPage() {
   const submit = async () => {
     if (!user) {
       toast.info("Create an account to request your move");
-      void navigate({ to: "/auth" });
+      void navigate({ to: "/auth", search: { redirect: "" } });
       return;
     }
     setSubmitting(true);
@@ -184,6 +198,14 @@ function BookPage() {
       setSubmitting(false);
     }
   };
+
+  if (authLoading || !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-28">
@@ -622,7 +644,11 @@ function BookPage() {
 
             {!user && (
               <p className="text-center text-sm text-muted-foreground">
-                <Link to="/auth" className="font-semibold underline underline-offset-4">
+                <Link
+                  to="/auth"
+                  search={{ redirect: "" }}
+                  className="font-semibold underline underline-offset-4"
+                >
                   Log in or create an account
                 </Link>{" "}
                 to request this move.

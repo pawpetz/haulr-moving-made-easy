@@ -131,7 +131,9 @@ function Landing() {
             ) : (
               <>
                 <Button asChild variant="ghost" size="sm">
-                  <Link to="/auth">Log in</Link>
+                  <Link to="/auth" search={{ redirect: "" }}>
+                    Log in
+                  </Link>
                 </Button>
                 <Button asChild size="sm">
                   <Link to="/book" search={{ pickup: "", dropoff: "", item: "", when: "" }}>
@@ -386,7 +388,7 @@ function Landing() {
             Big stuff. Moved easy. © {new Date().getFullYear()} Haulr.
           </p>
           <div className="flex gap-4 text-sm text-muted-foreground">
-            <Link to="/auth" className="hover:text-foreground">
+            <Link to="/auth" search={{ redirect: "" }} className="hover:text-foreground">
               Log in
             </Link>
             <Link

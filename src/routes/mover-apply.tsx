@@ -36,7 +36,7 @@ function MoverApplyPage() {
 
   const apply = async () => {
     if (!user) {
-      void navigate({ to: "/auth" });
+      void navigate({ to: "/auth", search: { redirect: "" } });
       return;
     }
     setBusy(true);

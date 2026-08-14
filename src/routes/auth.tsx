@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>): { redirect: string } => ({
+    redirect: typeof search["redirect"] === "string" ? search["redirect"] : "",
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — Haulr" },
@@ -25,6 +28,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const { user, primaryRole, loading } = useAuth();
+  const { redirect } = Route.useSearch();
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
@@ -35,11 +39,15 @@ function AuthPage() {
 
   useEffect(() => {
     if (!loading && user) {
+      if (redirect) {
+        void navigate({ to: redirect });
+        return;
+      }
       void navigate({
         to: primaryRole === "admin" ? "/admin" : primaryRole === "mover" ? "/mover" : "/dashboard",
       });
     }
-  }, [loading, user, primaryRole, navigate]);
+  }, [loading, user, primaryRole, navigate, redirect]);
 
   const signIn = async () => {
     setBusy(true);
@@ -87,7 +95,7 @@ function AuthPage() {
       return;
     }
     toast.success("Account created");
-    void navigate({ to: role === "mover" ? "/mover-apply" : "/book" });
+    void navigate({ to: role === "mover" ? "/mover-apply" : redirect || "/book" });
   };
 
   const resetPassword = async () => {

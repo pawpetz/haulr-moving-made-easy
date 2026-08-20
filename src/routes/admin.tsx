@@ -431,7 +431,13 @@ function AdminPage() {
                       </tr>
                     )}
                     {filteredJobs.map((job) => (
-                      <tr key={job.id} className="border-b border-border last:border-0">
+                      <tr
+                        key={job.id}
+                        onClick={() =>
+                          void navigate({ to: "/jobs/$jobId", params: { jobId: job.id } })
+                        }
+                        className="cursor-pointer border-b border-border transition-colors last:border-0 hover:bg-secondary/40"
+                      >
                         <td className="p-3">{job.customer_name}</td>
                         <td className="max-w-[220px] p-3">
                           <p className="truncate">{job.pickup_address}</p>
@@ -455,7 +461,10 @@ function AdminPage() {
                               variant="outline"
                               className="rounded-xl text-destructive hover:text-destructive"
                               disabled={actingOn === job.id}
-                              onClick={() => void cancelJob(job.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void cancelJob(job.id);
+                              }}
                             >
                               Cancel
                             </Button>

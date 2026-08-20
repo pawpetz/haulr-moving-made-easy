@@ -12,9 +12,9 @@ import { PhotoUploader } from "@/components/haulr/PhotoUploader";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { fetchJobRating, rateJob, updateJobStatus } from "@/services/jobs.service";
+import { fetchJobHistory, fetchJobRating, rateJob, updateJobStatus } from "@/services/jobs.service";
 import { formatMoney } from "@/lib/pricing";
-import { MOVER_ACTIONS, VEHICLE_LABELS } from "@/lib/constants";
+import { MOVER_ACTIONS, STATUS_LABELS, VEHICLE_LABELS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { JobStatus, VehicleType } from "@/lib/types";
 
@@ -50,7 +50,7 @@ export const Route = createFileRoute("/jobs/$jobId")({
 
 function JobDetailPage() {
   const { jobId } = Route.useParams();
-  const { user } = useAuth();
+  const { user, primaryRole } = useAuth();
   const queryClient = useQueryClient();
   const [advancing, setAdvancing] = useState(false);
   const [deliveryPhotos, setDeliveryPhotos] = useState<string[]>([]);
@@ -84,8 +84,14 @@ function JobDetailPage() {
 
   const isAssignedMover = Boolean(user && job && job.mover_user_id === user.id);
   const isJobCustomer = Boolean(user && job && job.customer_user_id === user.id);
+  const isAdminViewer = primaryRole === "admin";
   const nextAction = job ? MOVER_ACTIONS.find((a) => a.from === job.status) : undefined;
   const isCompletionStep = nextAction?.to === "COMPLETED";
+
+  const { data: history = [] } = useQuery({
+    queryKey: ["job-history", jobId],
+    queryFn: () => fetchJobHistory(jobId),
+  });
 
   const { data: rating, isLoading: ratingLoading } = useQuery({
     queryKey: ["job-rating", jobId],
@@ -137,6 +143,7 @@ function JobDetailPage() {
       }
       await updateJobStatus(job.id, nextAction.to);
       void queryClient.invalidateQueries({ queryKey: ["job", jobId] });
+      void queryClient.invalidateQueries({ queryKey: ["job-history", jobId] });
       void queryClient.invalidateQueries({ queryKey: ["mover-jobs"] });
       void queryClient.invalidateQueries({ queryKey: ["my-jobs"] });
       void queryClient.invalidateQueries({ queryKey: ["mover-profile"] });
@@ -286,10 +293,10 @@ function JobDetailPage() {
               </div>
             )}
 
-            {isJobCustomer && job.status === "COMPLETED" && !ratingLoading && (
+            {(isJobCustomer || isAdminViewer) && job.status === "COMPLETED" && !ratingLoading && (
               <div className="surface-card space-y-4 p-5">
                 <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  {rating ? "Your rating" : "Rate this move"}
+                  {rating ? "Rating" : isJobCustomer ? "Rate this move" : "Rating"}
                 </p>
                 {rating ? (
                   <div className="space-y-2">
@@ -310,7 +317,7 @@ function JobDetailPage() {
                       <p className="text-sm text-muted-foreground">{rating.review}</p>
                     )}
                   </div>
-                ) : (
+                ) : isJobCustomer ? (
                   <>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((n) => (
@@ -349,9 +356,39 @@ function JobDetailPage() {
                       )}
                     </Button>
                   </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    The customer hasn't left a rating yet.
+                  </p>
                 )}
               </div>
             )}
+
+            <div className="surface-card space-y-3 p-5">
+              <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Timeline
+              </p>
+              <ol className="space-y-3">
+                {history.map((entry) => (
+                  <li key={entry.id} className="flex items-start justify-between gap-4 text-sm">
+                    <span className="font-medium">
+                      {STATUS_LABELS[entry.status as JobStatus] ?? entry.status}
+                    </span>
+                    <span className="shrink-0 text-right text-muted-foreground">
+                      {new Date(entry.created_at).toLocaleString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </li>
+                ))}
+                {history.length === 0 && (
+                  <li className="text-sm text-muted-foreground">No status changes yet.</li>
+                )}
+              </ol>
+            </div>
 
             {job.photos && job.photos.filter((p) => p.phase === "DELIVERY").length > 0 && (
               <div className="surface-card space-y-2 p-5">

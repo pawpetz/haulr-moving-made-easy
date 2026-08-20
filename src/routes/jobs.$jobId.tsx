@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AppShell } from "@/components/haulr/AppShell";
@@ -10,9 +10,11 @@ import { StatusTracker } from "@/components/haulr/StatusTracker";
 import { MapPlaceholder } from "@/components/haulr/MapPlaceholder";
 import { PhotoUploader } from "@/components/haulr/PhotoUploader";
 import { Button } from "@/components/ui/button";
-import { updateJobStatus } from "@/services/jobs.service";
+import { Textarea } from "@/components/ui/textarea";
+import { fetchJobRating, rateJob, updateJobStatus } from "@/services/jobs.service";
 import { formatMoney } from "@/lib/pricing";
 import { MOVER_ACTIONS } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 import type { JobStatus } from "@/lib/types";
 
 export const Route = createFileRoute("/jobs/$jobId")({
@@ -52,8 +54,42 @@ function JobDetailPage() {
   });
 
   const isAssignedMover = Boolean(user && job && job.mover_user_id === user.id);
+  const isJobCustomer = Boolean(user && job && job.customer_user_id === user.id);
   const nextAction = job ? MOVER_ACTIONS.find((a) => a.from === job.status) : undefined;
   const isCompletionStep = nextAction?.to === "COMPLETED";
+
+  const { data: rating, isLoading: ratingLoading } = useQuery({
+    queryKey: ["job-rating", jobId],
+    enabled: Boolean(job) && job?.status === "COMPLETED",
+    queryFn: () => fetchJobRating(jobId),
+  });
+
+  const [stars, setStars] = useState(0);
+  const [review, setReview] = useState("");
+  const [submittingRating, setSubmittingRating] = useState(false);
+
+  const submitRating = async () => {
+    if (!job || !user || stars === 0) {
+      toast.error("Pick a star rating first");
+      return;
+    }
+    setSubmittingRating(true);
+    try {
+      await rateJob({
+        jobId: job.id,
+        moverId: job.mover_id,
+        userId: user.id,
+        stars,
+        review,
+      });
+      void queryClient.invalidateQueries({ queryKey: ["job-rating", jobId] });
+      toast.success("Thanks for the feedback!");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not submit rating");
+    } finally {
+      setSubmittingRating(false);
+    }
+  };
 
   const handleAdvance = async () => {
     if (!job || !nextAction) return;
@@ -132,6 +168,73 @@ function JobDetailPage() {
                 >
                   {advancing ? <Loader2 className="h-4 w-4 animate-spin" /> : nextAction.label}
                 </Button>
+              </div>
+            )}
+
+            {isJobCustomer && job.status === "COMPLETED" && !ratingLoading && (
+              <div className="surface-card space-y-4 p-5">
+                <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  {rating ? "Your rating" : "Rate this move"}
+                </p>
+                {rating ? (
+                  <div className="space-y-2">
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <Star
+                          key={n}
+                          className={cn(
+                            "h-6 w-6",
+                            n <= rating.stars
+                              ? "fill-accent text-accent"
+                              : "fill-transparent text-border",
+                          )}
+                        />
+                      ))}
+                    </div>
+                    {rating.review && (
+                      <p className="text-sm text-muted-foreground">{rating.review}</p>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          aria-label={`${n} star${n === 1 ? "" : "s"}`}
+                          onClick={() => setStars(n)}
+                        >
+                          <Star
+                            className={cn(
+                              "h-8 w-8 transition-colors",
+                              n <= stars
+                                ? "fill-accent text-accent"
+                                : "fill-transparent text-border hover:text-accent/60",
+                            )}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <Textarea
+                      value={review}
+                      onChange={(e) => setReview(e.target.value)}
+                      placeholder="Optional — how did it go?"
+                      className="rounded-xl"
+                    />
+                    <Button
+                      className="w-full rounded-xl"
+                      disabled={submittingRating}
+                      onClick={() => void submitRating()}
+                    >
+                      {submittingRating ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Submit rating"
+                      )}
+                    </Button>
+                  </>
+                )}
               </div>
             )}
 

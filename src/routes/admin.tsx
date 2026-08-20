@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   BarChart3,
   Check,
+  CreditCard,
   DollarSign,
   ClipboardList,
   Loader2,
@@ -23,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { setMoverStatus } from "@/services/movers.service";
 import { updateJobStatus } from "@/services/jobs.service";
+import { fetchPayments, STRIPE_ENABLED } from "@/services/payments.service";
 import { formatMoney } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 import type { JobStatus, MoverStatus } from "@/lib/types";
@@ -43,6 +45,7 @@ const NAV = [
   { key: "overview", label: "Overview", icon: BarChart3 },
   { key: "movers", label: "Movers", icon: Users },
   { key: "jobs", label: "Jobs", icon: ClipboardList },
+  { key: "payments", label: "Payments", icon: CreditCard },
   { key: "pricing", label: "Pricing", icon: DollarSign },
 ] as const;
 type Tab = (typeof NAV)[number]["key"];
@@ -100,6 +103,12 @@ function AdminPage() {
     },
   });
 
+  const { data: payments = [], isLoading: paymentsLoading } = useQuery({
+    queryKey: ["admin-payments"],
+    enabled: primaryRole === "admin",
+    queryFn: fetchPayments,
+  });
+
   const jobs = data?.jobs ?? [];
   const movers = data?.movers ?? [];
   const revenue = jobs.reduce((sum, j) => sum + Number(j.platform_fee ?? 0), 0);
@@ -128,6 +137,15 @@ function AdminPage() {
       j.mover?.full_name,
       j.mover?.business_name,
     ]
+      .filter(Boolean)
+      .some((field) => field!.toLowerCase().includes(q));
+  });
+
+  const [paymentSearch, setPaymentSearch] = useState("");
+  const filteredPayments = payments.filter((p) => {
+    const q = paymentSearch.trim().toLowerCase();
+    if (!q) return true;
+    return [p.job?.customer_name, p.job?.reference, p.provider_payment_id, p.status]
       .filter(Boolean)
       .some((field) => field!.toLowerCase().includes(q));
   });
@@ -469,6 +487,89 @@ function AdminPage() {
                               Cancel
                             </Button>
                           )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {tab === "payments" && (
+            <div className="space-y-3">
+              <div className="relative max-w-sm">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={paymentSearch}
+                  onChange={(e) => setPaymentSearch(e.target.value)}
+                  placeholder="Search by customer, reference, or status…"
+                  className="h-10 rounded-xl pl-9"
+                />
+              </div>
+              {STRIPE_ENABLED ? null : (
+                <div className="rounded-xl bg-accent/15 px-4 py-3 text-sm text-accent-foreground">
+                  Stripe isn't configured — every payment below is a mock record (no real card is
+                  charged). Set{" "}
+                  <code className="font-mono text-xs">VITE_STRIPE_PUBLISHABLE_KEY</code> and wire up
+                  real payment intents to go live.
+                </div>
+              )}
+              <div className="surface-card overflow-x-auto p-0">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
+                      <th className="p-3">Customer</th>
+                      <th className="p-3">Job</th>
+                      <th className="p-3">Provider</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3 text-right">Amount</th>
+                      <th className="p-3 text-right">Platform fee</th>
+                      <th className="p-3 text-right">Mover payout</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paymentsLoading && (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                          Loading…
+                        </td>
+                      </tr>
+                    )}
+                    {!paymentsLoading && filteredPayments.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                          {payments.length === 0
+                            ? "No payments yet."
+                            : "No payments match your search."}
+                        </td>
+                      </tr>
+                    )}
+                    {filteredPayments.map((p) => (
+                      <tr key={p.id} className="border-b border-border last:border-0">
+                        <td className="p-3">{p.job?.customer_name ?? "—"}</td>
+                        <td className="p-3 font-mono text-xs">{p.job?.reference ?? p.job_id}</td>
+                        <td className="p-3">
+                          <span
+                            className={cn(
+                              "rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                              p.provider === "stripe"
+                                ? "bg-success/15 text-success"
+                                : "bg-secondary text-muted-foreground",
+                            )}
+                          >
+                            {p.provider === "stripe" ? "Stripe" : "Mock"}
+                          </span>
+                        </td>
+                        <td className="p-3">{p.status}</td>
+                        <td className="p-3 text-right font-medium">
+                          {formatMoney(Number(p.amount ?? 0))}
+                        </td>
+                        <td className="p-3 text-right text-muted-foreground">
+                          {formatMoney(Number(p.platform_fee ?? 0))}
+                        </td>
+                        <td className="p-3 text-right text-muted-foreground">
+                          {formatMoney(Number(p.mover_payout ?? 0))}
                         </td>
                       </tr>
                     ))}

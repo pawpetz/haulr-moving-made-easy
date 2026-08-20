@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, LogOut, Star, Truck } from "lucide-react";
+import { Camera, Loader2, LogOut, Star, Truck } from "lucide-react";
 import { AppShell } from "@/components/haulr/AppShell";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMoverByUser } from "@/services/movers.service";
 import { useQuery } from "@tanstack/react-query";
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 export const Route = createFileRoute("/account")({
   head: () => ({
@@ -27,6 +38,8 @@ function AccountPage() {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setFullName(profile?.full_name ?? "");
@@ -39,6 +52,33 @@ function AccountPage() {
     enabled: Boolean(user?.id) && primaryRole === "mover",
     queryFn: () => fetchMoverByUser(user!.id),
   });
+
+  const uploadAvatar = async (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file || !user) return;
+    setUploadingAvatar(true);
+    try {
+      const path = `avatars/${user.id}-${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.]/g, "-")}`;
+      const { error: uploadError } = await supabase.storage.from("job-photos").upload(path, file);
+      if (uploadError) throw uploadError;
+      const { data: signed, error: signError } = await supabase.storage
+        .from("job-photos")
+        .createSignedUrl(path, 60 * 60 * 24 * 365);
+      if (signError) throw signError;
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: signed.signedUrl })
+        .eq("user_id", user.id);
+      if (updateError) throw updateError;
+      toast.success("Photo updated");
+      void refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Upload failed");
+    } finally {
+      setUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
+    }
+  };
 
   const save = async () => {
     if (!user) return;
@@ -59,6 +99,41 @@ function AccountPage() {
   return (
     <AppShell title="Account" subtitle="Your contact details and profile.">
       <div className="mx-auto max-w-lg space-y-6">
+        <div className="surface-card flex items-center gap-4 p-5 sm:p-6">
+          <div className="relative">
+            <Avatar className="h-16 w-16">
+              {profile?.avatar_url && <AvatarImage src={profile.avatar_url} />}
+              <AvatarFallback className="bg-secondary text-lg font-semibold">
+                {initials(profile?.full_name || user?.email || "You")}
+              </AvatarFallback>
+            </Avatar>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => void uploadAvatar(e.target.files)}
+            />
+            <button
+              type="button"
+              aria-label="Change profile photo"
+              disabled={uploadingAvatar}
+              onClick={() => avatarInputRef.current?.click()}
+              className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-ink text-ink-foreground shadow-soft transition-transform hover:scale-105"
+            >
+              {uploadingAvatar ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Camera className="h-3.5 w-3.5" />
+              )}
+            </button>
+          </div>
+          <div>
+            <p className="font-semibold">{profile?.full_name || "Your profile"}</p>
+            <p className="text-sm text-muted-foreground">{user?.email}</p>
+          </div>
+        </div>
+
         <div className="surface-card space-y-4 p-5 sm:p-6">
           <div className="space-y-1.5">
             <Label htmlFor="account-name">Full name</Label>

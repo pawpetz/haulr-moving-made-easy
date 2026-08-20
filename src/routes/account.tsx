@@ -33,7 +33,7 @@ export const Route = createFileRoute("/account")({
 });
 
 function AccountPage() {
-  const { user, profile, primaryRole, refresh, signOut } = useAuth();
+  const { user, profile, primaryRole, loading: authLoading, refresh, signOut } = useAuth();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -95,6 +95,17 @@ function AccountPage() {
     toast.success("Profile updated");
     void refresh();
   };
+
+  if (authLoading) {
+    return (
+      <AppShell title="Account" subtitle="Your contact details and profile.">
+        <div className="mx-auto max-w-lg space-y-6">
+          <div className="surface-card h-24 animate-pulse" />
+          <div className="surface-card h-72 animate-pulse" />
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell title="Account" subtitle="Your contact details and profile.">

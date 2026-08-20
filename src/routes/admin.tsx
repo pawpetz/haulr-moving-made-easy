@@ -529,13 +529,16 @@ function AdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {paymentsLoading && (
-                      <tr>
-                        <td colSpan={7} className="p-8 text-center text-muted-foreground">
-                          Loading…
-                        </td>
-                      </tr>
-                    )}
+                    {paymentsLoading &&
+                      [0, 1, 2].map((i) => (
+                        <tr key={i} className="border-b border-border last:border-0">
+                          {Array.from({ length: 7 }).map((_, cellIdx) => (
+                            <td key={cellIdx} className="p-3">
+                              <div className="h-4 animate-pulse rounded bg-secondary" />
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
                     {!paymentsLoading && filteredPayments.length === 0 && (
                       <tr>
                         <td colSpan={7} className="p-8 text-center text-muted-foreground">
@@ -581,7 +584,13 @@ function AdminPage() {
 
           {tab === "pricing" && (
             <div className="surface-card max-w-lg space-y-4 p-5">
-              {pricingLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+              {pricingLoading &&
+                [0, 1, 2, 3].map((i) => (
+                  <div key={i} className="space-y-1.5">
+                    <div className="h-3 w-24 animate-pulse rounded bg-secondary" />
+                    <div className="h-11 animate-pulse rounded-xl bg-secondary" />
+                  </div>
+                ))}
               {pricingRules?.map((rule) => (
                 <div key={rule.key} className="space-y-1.5">
                   <Label>

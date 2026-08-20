@@ -2184,3 +2184,6 @@ Notable ones:
   deterministic estimate (same two addresses always produce the same number, but it's
   not real mileage). Get a free public token at mapbox.com → Tokens.
 
+<!-- Mapbox token confirmed set in Vercel production/preview envs. -->
+
+

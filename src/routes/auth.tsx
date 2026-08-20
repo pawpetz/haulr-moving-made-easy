@@ -39,13 +39,14 @@ function AuthPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      if (redirect) {
-        void navigate({ to: redirect });
-        return;
-      }
-      void navigate({
-        to: activeRole === "admin" ? "/admin" : activeRole === "mover" ? "/mover" : "/dashboard",
-      });
+      const roleHome =
+        activeRole === "admin" ? "/admin" : activeRole === "mover" ? "/mover" : "/dashboard";
+      // A stale redirect=/book (e.g. from clicking "Get a Quote" while
+      // logged out earlier) shouldn't hijack a mover/admin login — only
+      // honor it if this account is actually acting as a customer.
+      const redirectIsSafe =
+        redirect && !(redirect.startsWith("/book") && activeRole !== "customer");
+      void navigate({ to: redirectIsSafe ? redirect : roleHome });
     }
   }, [loading, user, activeRole, navigate, redirect]);
 

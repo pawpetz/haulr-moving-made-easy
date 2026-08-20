@@ -43,6 +43,7 @@ import type {
   VehicleType,
 } from "@/lib/types";
 import { calculateEstimate, estimateDistance, formatMoney, recommendVehicle } from "@/lib/pricing";
+import { getRouteDistance } from "@/lib/geo";
 import { fetchPricingMap } from "@/services/pricing.service";
 import { createJob, updateJobStatus } from "@/services/jobs.service";
 import { authorizePayment } from "@/services/payments.service";
@@ -133,10 +134,20 @@ function BookPage() {
 
   const { data: rules } = useQuery({ queryKey: ["pricing"], queryFn: fetchPricingMap });
 
-  const distance = useMemo(
+  const { data: route, isFetching: isRouteFetching } = useQuery({
+    queryKey: ["route-distance", draft.pickupAddress, draft.dropoffAddress],
+    queryFn: () => getRouteDistance(draft.pickupAddress, draft.dropoffAddress),
+    enabled: draft.pickupAddress.trim().length > 3 && draft.dropoffAddress.trim().length > 3,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const fallbackDistance = useMemo(
     () => estimateDistance(draft.pickupAddress, draft.dropoffAddress),
     [draft.pickupAddress, draft.dropoffAddress],
   );
+
+  const distance = route?.miles ?? fallbackDistance;
+  const isRealDistance = Boolean(route?.miles);
 
   const recommended = useMemo(() => recommendVehicle(draft.items), [draft.items]);
   const vehicleType: VehicleType = vehicleTouched ? draft.vehicleType : recommended;
@@ -249,10 +260,19 @@ function BookPage() {
                 />
               </div>
               <div className="rounded-xl bg-secondary px-4 py-3 text-sm">
-                Estimated distance:{" "}
-                <span className="font-semibold">
-                  {distance ? `${distance.toFixed(1)} miles` : "—"}
-                </span>
+                {isRouteFetching ? (
+                  <span className="text-muted-foreground">Calculating driving distance…</span>
+                ) : (
+                  <>
+                    {isRealDistance ? "Driving distance" : "Estimated distance"}:{" "}
+                    <span className="font-semibold">
+                      {distance ? `${distance.toFixed(1)} miles` : "—"}
+                    </span>
+                    {route?.minutes ? (
+                      <span className="text-muted-foreground"> · ~{route.minutes} min drive</span>
+                    ) : null}
+                  </>
+                )}
               </div>
             </div>
             <div className="surface-card space-y-3 p-5">

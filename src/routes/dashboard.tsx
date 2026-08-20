@@ -53,7 +53,7 @@ function DashboardPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jobs")
-        .select("*, mover:mover_profiles(id, full_name, rating)")
+        .select("*, mover:mover_profiles(id, full_name, business_name, rating)")
         .eq("customer_user_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -140,11 +140,13 @@ function DashboardPage() {
                     <div className="flex items-center gap-2.5 rounded-xl bg-secondary/60 px-3 py-2.5">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-card text-xs font-semibold">
-                          {initials(job.mover.full_name || "Mover")}
+                          {initials(job.mover.business_name || job.mover.full_name || "Mover")}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">{job.mover.full_name}</p>
+                        <p className="truncate text-sm font-medium">
+                          {job.mover.business_name || job.mover.full_name}
+                        </p>
                       </div>
                       <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
                         <Star className="h-3 w-3 fill-accent text-accent" />

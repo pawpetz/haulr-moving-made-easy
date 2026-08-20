@@ -70,7 +70,7 @@ function JobDetailPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("mover_profiles")
-        .select("id, full_name, rating, photo_url, vehicles(type)")
+        .select("id, full_name, business_name, rating, photo_url, vehicles(type)")
         .eq("id", job!.mover_id!)
         .maybeSingle();
       if (error) throw error;
@@ -173,12 +173,12 @@ function JobDetailPage() {
                 <Avatar className="h-11 w-11">
                   {assignedMover.photo_url && <AvatarImage src={assignedMover.photo_url} />}
                   <AvatarFallback className="bg-secondary text-sm font-semibold">
-                    {initials(assignedMover.full_name || "Mover")}
+                    {initials(assignedMover.business_name || assignedMover.full_name || "Mover")}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">
-                    {assignedMover.full_name || "Your mover"}
+                    {assignedMover.business_name || assignedMover.full_name || "Your mover"}
                   </p>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">

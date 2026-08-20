@@ -28,12 +28,13 @@ export const Route = createFileRoute("/mover-apply")({
 });
 
 function MoverApplyPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [vehicleType, setVehicleType] = useState<VehicleType>("PICKUP_TRUCK");
   const [city, setCity] = useState("");
   const [bio, setBio] = useState("");
+  const [businessName, setBusinessName] = useState("");
 
   useEffect(() => {
     if (authLoading || user) return;
@@ -47,10 +48,11 @@ function MoverApplyPage() {
       .from("mover_profiles")
       .insert({
         user_id: user.id,
-        full_name: user.email ?? "New mover",
+        full_name: profile?.full_name || user.email || "New mover",
         email: user.email ?? null,
         service_area: city,
         bio: bio || null,
+        business_name: businessName || null,
       })
       .select("id")
       .single();
@@ -111,6 +113,30 @@ function MoverApplyPage() {
           </div>
 
           <div className="surface-card space-y-3 p-5">
+            <div className="space-y-1.5">
+              <Label>Your name</Label>
+              <Input value={profile?.full_name ?? ""} disabled className="h-12 rounded-xl" />
+              <p className="text-xs text-muted-foreground">
+                This is how customers will see you. Update it on your{" "}
+                <a href="/account" className="underline underline-offset-2">
+                  Account page
+                </a>{" "}
+                if it's wrong.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Business name (optional)</Label>
+              <Input
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                placeholder="e.g. Sam's Moving Co."
+                className="h-12 rounded-xl"
+              />
+              <p className="text-xs text-muted-foreground">
+                If you operate under a business name, customers will see that instead of your
+                personal name.
+              </p>
+            </div>
             <div className="space-y-1.5">
               <Label>Service city</Label>
               <Input

@@ -58,7 +58,11 @@ function JobDetailPage() {
   const { data: job, isLoading } = useQuery({
     queryKey: ["job", jobId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("jobs").select("*").eq("id", jobId).maybeSingle();
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("*, items:job_items(*), photos:job_photos(*)")
+        .eq("id", jobId)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -196,6 +200,48 @@ function JobDetailPage() {
               </div>
             )}
 
+            {(job.items?.length || job.photos?.length || job.special_instructions) && (
+              <div className="surface-card space-y-3 p-5">
+                <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  What you're moving
+                </p>
+                {job.items && job.items.length > 0 && (
+                  <ul className="space-y-1 text-sm">
+                    {job.items.map((item) => (
+                      <li key={item.id} className="flex justify-between">
+                        <span>
+                          {item.quantity > 1 ? `${item.quantity}x ` : ""}
+                          {item.item_type}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {item.size ? String(item.size).toLowerCase() : ""}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {job.special_instructions && (
+                  <p className="rounded-lg bg-secondary/60 px-3 py-2 text-sm text-muted-foreground">
+                    "{job.special_instructions}"
+                  </p>
+                )}
+                {job.photos && job.photos.filter((p) => p.phase === "REQUEST").length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto">
+                    {job.photos
+                      .filter((p) => p.phase === "REQUEST")
+                      .map((photo) => (
+                        <img
+                          key={photo.id}
+                          src={photo.url ?? undefined}
+                          alt="Item reference"
+                          className="h-20 w-20 shrink-0 rounded-lg object-cover"
+                        />
+                      ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {isAssignedMover && nextAction && (
               <div className="surface-card space-y-4 p-5">
                 <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -304,6 +350,26 @@ function JobDetailPage() {
                     </Button>
                   </>
                 )}
+              </div>
+            )}
+
+            {job.photos && job.photos.filter((p) => p.phase === "DELIVERY").length > 0 && (
+              <div className="surface-card space-y-2 p-5">
+                <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Delivery photos
+                </p>
+                <div className="flex gap-2 overflow-x-auto">
+                  {job.photos
+                    .filter((p) => p.phase === "DELIVERY")
+                    .map((photo) => (
+                      <img
+                        key={photo.id}
+                        src={photo.url ?? undefined}
+                        alt="Delivered item"
+                        className="h-20 w-20 shrink-0 rounded-lg object-cover"
+                      />
+                    ))}
+                </div>
               </div>
             )}
 

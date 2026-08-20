@@ -239,6 +239,37 @@ function MoverPage() {
                       {formatMoney(Number(job.mover_payout ?? 0))}
                     </span>
                   </div>
+
+                  {job.items && job.items.length > 0 && (
+                    <p className="text-sm">
+                      <span className="text-muted-foreground">Items: </span>
+                      {job.items
+                        .map((i) =>
+                          i.quantity > 1 ? `${i.quantity}x ${i.item_type}` : i.item_type,
+                        )
+                        .join(", ")}
+                    </p>
+                  )}
+
+                  {job.special_instructions && (
+                    <p className="rounded-lg bg-secondary/60 px-3 py-2 text-sm text-muted-foreground">
+                      "{job.special_instructions}"
+                    </p>
+                  )}
+
+                  {job.photos && job.photos.length > 0 && (
+                    <div className="flex gap-2 overflow-x-auto">
+                      {job.photos.map((photo) => (
+                        <img
+                          key={photo.id}
+                          src={photo.url ?? undefined}
+                          alt="Item reference"
+                          className="h-16 w-16 shrink-0 rounded-lg object-cover"
+                        />
+                      ))}
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between border-t border-border pt-3">
                     <span className="text-xs text-muted-foreground">
                       {String(job.vehicle_type ?? "").replaceAll("_", " ")} ·{" "}

@@ -2172,3 +2172,15 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Environment variables
+
+Copy `.env.example` to `.env` and fill in real values (never commit real credentials).
+
+Notable ones:
+- `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` — required, app won't run without these
+- `VITE_MAPBOX_TOKEN` — optional. When set, driving distance and pricing use a real route
+  from Mapbox's geocoding + directions APIs. Without it, the app falls back to a
+  deterministic estimate (same two addresses always produce the same number, but it's
+  not real mileage). Get a free public token at mapbox.com → Tokens.
+

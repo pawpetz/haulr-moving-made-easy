@@ -303,6 +303,7 @@ export type Database = {
       mover_profiles: {
         Row: {
           address: string | null;
+          bio: string | null;
           created_at: string;
           email: string | null;
           full_name: string;
@@ -326,6 +327,7 @@ export type Database = {
         };
         Insert: {
           address?: string | null;
+          bio?: string | null;
           created_at?: string;
           email?: string | null;
           full_name?: string;
@@ -349,6 +351,7 @@ export type Database = {
         };
         Update: {
           address?: string | null;
+          bio?: string | null;
           created_at?: string;
           email?: string | null;
           full_name?: string;

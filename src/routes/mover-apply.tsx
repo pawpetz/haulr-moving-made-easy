@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AppShell } from "@/components/haulr/AppShell";
@@ -27,33 +28,58 @@ export const Route = createFileRoute("/mover-apply")({
 });
 
 function MoverApplyPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [vehicleType, setVehicleType] = useState<VehicleType>("PICKUP_TRUCK");
   const [city, setCity] = useState("");
   const [bio, setBio] = useState("");
 
+  useEffect(() => {
+    if (authLoading || user) return;
+    void navigate({ to: "/auth", search: { redirect: "/mover-apply" } });
+  }, [authLoading, user, navigate]);
+
   const apply = async () => {
-    if (!user) {
-      void navigate({ to: "/auth", search: { redirect: "" } });
+    if (!user) return;
+    setBusy(true);
+    const { data: moverProfile, error } = await supabase
+      .from("mover_profiles")
+      .insert({
+        user_id: user.id,
+        full_name: user.email ?? "New mover",
+        email: user.email ?? null,
+        service_area: city,
+        bio: bio || null,
+      })
+      .select("id")
+      .single();
+    if (error) {
+      setBusy(false);
+      toast.error(error.message);
       return;
     }
-    setBusy(true);
-    const { error } = await supabase.from("mover_profiles").insert({
-      user_id: user.id,
-      full_name: user.email ?? "New mover",
-      email: user.email ?? null,
-      service_area: city,
+
+    const { error: vehicleError } = await supabase.from("vehicles").insert({
+      mover_id: moverProfile.id,
+      type: vehicleType,
     });
     setBusy(false);
-    if (error) {
-      toast.error(error.message);
+    if (vehicleError) {
+      toast.error(vehicleError.message);
       return;
     }
     toast.success("Application submitted — we'll review it shortly");
     void navigate({ to: "/mover" });
   };
+
+  if (authLoading || !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <AppShell>

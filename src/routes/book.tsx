@@ -11,6 +11,7 @@ import {
   Plus,
   Trash2,
   Truck,
+  X,
 } from "lucide-react";
 import { Logo } from "@/components/haulr/Logo";
 import { PhotoUploader } from "@/components/haulr/PhotoUploader";
@@ -223,9 +224,19 @@ function BookPage() {
       <header className="sticky top-0 z-30 border-b border-border bg-card/90 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-4">
           <Logo />
-          <span className="text-sm text-muted-foreground">
-            Step {step + 1} of {STEPS.length}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">
+              Step {step + 1} of {STEPS.length}
+            </span>
+            <button
+              type="button"
+              aria-label="Exit booking"
+              onClick={() => void navigate({ to: "/dashboard" })}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
         <div className="h-1 w-full bg-secondary">
           <div

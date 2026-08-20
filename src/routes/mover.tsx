@@ -183,6 +183,12 @@ function MoverPage() {
                 </div>
                 <StatusPill status={currentJob.status as JobStatus} />
               </div>
+              {currentJob.customer_name && (
+                <p className="text-sm text-muted-foreground">
+                  Customer:{" "}
+                  <span className="font-medium text-foreground">{currentJob.customer_name}</span>
+                </p>
+              )}
               <div className="flex items-center justify-between border-t border-border pt-3 text-sm">
                 <span className="font-semibold">
                   {formatMoney(Number(currentJob.mover_payout ?? 0))} payout

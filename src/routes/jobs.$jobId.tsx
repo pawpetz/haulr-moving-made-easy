@@ -2,20 +2,31 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Star } from "lucide-react";
+import { Loader2, Phone, Star, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AppShell } from "@/components/haulr/AppShell";
 import { StatusTracker } from "@/components/haulr/StatusTracker";
 import { MapPlaceholder } from "@/components/haulr/MapPlaceholder";
 import { PhotoUploader } from "@/components/haulr/PhotoUploader";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchJobRating, rateJob, updateJobStatus } from "@/services/jobs.service";
 import { formatMoney } from "@/lib/pricing";
-import { MOVER_ACTIONS } from "@/lib/constants";
+import { MOVER_ACTIONS, VEHICLE_LABELS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import type { JobStatus } from "@/lib/types";
+import type { JobStatus, VehicleType } from "@/lib/types";
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 export const Route = createFileRoute("/jobs/$jobId")({
   head: () => ({
@@ -48,6 +59,20 @@ function JobDetailPage() {
     queryKey: ["job", jobId],
     queryFn: async () => {
       const { data, error } = await supabase.from("jobs").select("*").eq("id", jobId).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: assignedMover } = useQuery({
+    queryKey: ["job-mover", job?.mover_id],
+    enabled: Boolean(job?.mover_id),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("mover_profiles")
+        .select("id, full_name, rating, photo_url, vehicles(type)")
+        .eq("id", job!.mover_id!)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -143,11 +168,55 @@ function JobDetailPage() {
               <StatusTracker status={job.status as JobStatus} />
             </div>
 
+            {isJobCustomer && assignedMover && (
+              <div className="surface-card flex items-center gap-3 p-5">
+                <Avatar className="h-11 w-11">
+                  {assignedMover.photo_url && <AvatarImage src={assignedMover.photo_url} />}
+                  <AvatarFallback className="bg-secondary text-sm font-semibold">
+                    {initials(assignedMover.full_name || "Mover")}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold">
+                    {assignedMover.full_name || "Your mover"}
+                  </p>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Star className="h-3 w-3 fill-accent text-accent" />
+                      {Number(assignedMover.rating ?? 5).toFixed(1)}
+                    </span>
+                    {assignedMover.vehicles?.[0]?.type && (
+                      <span className="flex items-center gap-1">
+                        <Truck className="h-3 w-3" />
+                        {VEHICLE_LABELS[assignedMover.vehicles[0].type as VehicleType]}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {isAssignedMover && nextAction && (
               <div className="surface-card space-y-4 p-5">
                 <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   Mover actions
                 </p>
+                {job.customer_name && (
+                  <div className="flex items-center justify-between rounded-xl bg-secondary/60 px-4 py-3 text-sm">
+                    <span className="text-muted-foreground">Customer</span>
+                    <span className="flex items-center gap-2 font-medium">
+                      {job.customer_name}
+                      {job.customer_phone && (
+                        <a
+                          href={`tel:${job.customer_phone}`}
+                          className="flex items-center gap-1 text-accent-foreground"
+                        >
+                          <Phone className="h-3.5 w-3.5" />
+                        </a>
+                      )}
+                    </span>
+                  </div>
+                )}
                 {isCompletionStep && (
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">

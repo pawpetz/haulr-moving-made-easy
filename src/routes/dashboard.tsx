@@ -1,14 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Package, Plus } from "lucide-react";
+import { ArrowRight, Package, Plus, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AppShell } from "@/components/haulr/AppShell";
 import { StatusTracker, StatusPill } from "@/components/haulr/StatusTracker";
 import { MapPlaceholder } from "@/components/haulr/MapPlaceholder";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/lib/pricing";
 import type { JobStatus } from "@/lib/types";
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -42,7 +53,7 @@ function DashboardPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jobs")
-        .select("*")
+        .select("*, mover:mover_profiles(id, full_name, rating)")
         .eq("customer_user_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -125,6 +136,22 @@ function DashboardPage() {
                   </div>
                   <MapPlaceholder pickup={job.pickup_address} dropoff={job.dropoff_address} />
                   <StatusTracker status={job.status as JobStatus} />
+                  {job.mover && (
+                    <div className="flex items-center gap-2.5 rounded-xl bg-secondary/60 px-3 py-2.5">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-card text-xs font-semibold">
+                          {initials(job.mover.full_name || "Mover")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{job.mover.full_name}</p>
+                      </div>
+                      <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+                        <Star className="h-3 w-3 fill-accent text-accent" />
+                        {Number(job.mover.rating ?? 5).toFixed(1)}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between border-t border-border pt-3 text-sm">
                     <span className="font-semibold">
                       {formatMoney(Number(job.customer_price ?? 0))}

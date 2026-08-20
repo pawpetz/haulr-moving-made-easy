@@ -22,6 +22,7 @@ import { StatusPill } from "@/components/haulr/StatusTracker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { setMoverStatus } from "@/services/movers.service";
 import { updateJobStatus } from "@/services/jobs.service";
 import { fetchPayments, STRIPE_ENABLED } from "@/services/payments.service";
@@ -83,7 +84,7 @@ function AdminPage() {
         supabase
           .from("mover_profiles")
           .select(
-            "id, full_name, business_name, email, phone, service_area, status, rating, jobs_completed, total_earnings, created_at",
+            "id, full_name, business_name, email, phone, service_area, status, rating, jobs_completed, total_earnings, created_at, compliance_status, compliance_notes, license_expires_at, license_doc_url, insurance_expires_at, insurance_doc_url",
           )
           .order("created_at", { ascending: false }),
       ]);
@@ -166,6 +167,31 @@ function AdminPage() {
       toast.success(`Mover ${status.toLowerCase().replaceAll("_", " ")}`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not update mover");
+    } finally {
+      setActingOn(null);
+    }
+  };
+
+  const [complianceNoteDrafts, setComplianceNoteDrafts] = useState<Record<string, string>>({});
+
+  const changeComplianceStatus = async (
+    moverId: string,
+    status: "APPROVED" | "ACTION_REQUIRED",
+  ) => {
+    setActingOn(`compliance-${moverId}`);
+    try {
+      const { error } = await supabase
+        .from("mover_profiles")
+        .update({
+          compliance_status: status,
+          compliance_notes: complianceNoteDrafts[moverId] ?? null,
+        })
+        .eq("id", moverId);
+      if (error) throw error;
+      void queryClient.invalidateQueries({ queryKey: ["admin-overview"] });
+      toast.success(status === "APPROVED" ? "Compliance approved" : "Marked as action required");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update compliance");
     } finally {
       setActingOn(null);
     }
@@ -355,18 +381,37 @@ function AdminPage() {
                         {formatMoney(Number(mover.total_earnings ?? 0))} earned
                       </p>
                     </div>
-                    <span
-                      className={cn(
-                        "shrink-0 rounded-full px-3 py-1 text-xs font-semibold",
-                        mover.status === "APPROVED" && "bg-success/15 text-success",
-                        (mover.status === "PENDING" || mover.status === "UNDER_REVIEW") &&
-                          "bg-accent/20 text-accent-foreground",
-                        (mover.status === "REJECTED" || mover.status === "SUSPENDED") &&
-                          "bg-destructive/10 text-destructive",
-                      )}
-                    >
-                      {mover.status.replaceAll("_", " ")}
-                    </span>
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      <span
+                        className={cn(
+                          "rounded-full px-3 py-1 text-xs font-semibold",
+                          mover.status === "APPROVED" && "bg-success/15 text-success",
+                          (mover.status === "PENDING" || mover.status === "UNDER_REVIEW") &&
+                            "bg-accent/20 text-accent-foreground",
+                          (mover.status === "REJECTED" || mover.status === "SUSPENDED") &&
+                            "bg-destructive/10 text-destructive",
+                        )}
+                      >
+                        {mover.status.replaceAll("_", " ")}
+                      </span>
+                      <span
+                        className={cn(
+                          "rounded-full px-3 py-1 text-xs font-semibold",
+                          mover.compliance_status === "APPROVED" && "bg-success/15 text-success",
+                          mover.compliance_status === "PENDING_REVIEW" &&
+                            "bg-accent/20 text-accent-foreground",
+                          mover.compliance_status === "ACTION_REQUIRED" &&
+                            "bg-destructive/10 text-destructive",
+                        )}
+                      >
+                        Compliance:{" "}
+                        {mover.compliance_status === "PENDING_REVIEW"
+                          ? "Pending"
+                          : mover.compliance_status === "ACTION_REQUIRED"
+                            ? "Action req."
+                            : "Approved"}
+                      </span>
+                    </div>
                   </div>
                   <div className="mt-3 flex gap-2 border-t border-border pt-3">
                     {mover.status !== "APPROVED" && (
@@ -411,6 +456,76 @@ function AdminPage() {
                         Reinstate
                       </Button>
                     )}
+                  </div>
+
+                  <div className="mt-3 space-y-2 border-t border-border pt-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Compliance documents
+                    </p>
+                    <div className="grid gap-2 text-xs sm:grid-cols-2">
+                      <div className="flex items-center justify-between rounded-lg bg-secondary/60 px-3 py-2">
+                        <span className="text-muted-foreground">License</span>
+                        {mover.license_doc_url ? (
+                          <a
+                            href={mover.license_doc_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-medium underline underline-offset-2"
+                          >
+                            View
+                            {mover.license_expires_at ? ` · exp ${mover.license_expires_at}` : ""}
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground">Not uploaded</span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between rounded-lg bg-secondary/60 px-3 py-2">
+                        <span className="text-muted-foreground">Insurance</span>
+                        {mover.insurance_doc_url ? (
+                          <a
+                            href={mover.insurance_doc_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-medium underline underline-offset-2"
+                          >
+                            View
+                            {mover.insurance_expires_at
+                              ? ` · exp ${mover.insurance_expires_at}`
+                              : ""}
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground">Not uploaded</span>
+                        )}
+                      </div>
+                    </div>
+                    <Textarea
+                      placeholder="Notes for this provider (visible to them)…"
+                      defaultValue={mover.compliance_notes ?? ""}
+                      onChange={(e) =>
+                        setComplianceNoteDrafts((prev) => ({ ...prev, [mover.id]: e.target.value }))
+                      }
+                      className="min-h-16 rounded-xl text-sm"
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl"
+                        disabled={actingOn === `compliance-${mover.id}`}
+                        onClick={() => void changeComplianceStatus(mover.id, "APPROVED")}
+                      >
+                        <Check className="mr-1 h-3.5 w-3.5" /> Approve compliance
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl text-destructive hover:text-destructive"
+                        disabled={actingOn === `compliance-${mover.id}`}
+                        onClick={() => void changeComplianceStatus(mover.id, "ACTION_REQUIRED")}
+                      >
+                        Request info
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}

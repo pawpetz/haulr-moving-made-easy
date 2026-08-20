@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AppShell } from "@/components/haulr/AppShell";
+import { DocumentUploader } from "@/components/haulr/DocumentUploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +36,14 @@ function MoverApplyPage() {
   const [city, setCity] = useState("");
   const [bio, setBio] = useState("");
   const [businessName, setBusinessName] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
+  const [licenseState, setLicenseState] = useState("");
+  const [licenseExpires, setLicenseExpires] = useState("");
+  const [licenseDocUrl, setLicenseDocUrl] = useState<string | null>(null);
+  const [insuranceProvider, setInsuranceProvider] = useState("");
+  const [insurancePolicy, setInsurancePolicy] = useState("");
+  const [insuranceExpires, setInsuranceExpires] = useState("");
+  const [insuranceDocUrl, setInsuranceDocUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (authLoading || user) return;
@@ -53,6 +62,14 @@ function MoverApplyPage() {
         service_area: city,
         bio: bio || null,
         business_name: businessName || null,
+        license_number: licenseNumber || null,
+        license_state: licenseState || null,
+        license_expires_at: licenseExpires || null,
+        license_doc_url: licenseDocUrl,
+        insurance_provider: insuranceProvider || null,
+        insurance_policy: insurancePolicy || null,
+        insurance_expires_at: insuranceExpires || null,
+        insurance_doc_url: insuranceDocUrl,
       })
       .select("id")
       .single();
@@ -155,6 +172,89 @@ function MoverApplyPage() {
                 className="h-12 rounded-xl"
               />
             </div>
+          </div>
+
+          <div className="surface-card space-y-3 p-5">
+            <div>
+              <Label className="text-sm font-semibold">Driver's license</Label>
+              <p className="text-xs text-muted-foreground">
+                Required before you can accept jobs. An admin will review it.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>License number</Label>
+                <Input
+                  value={licenseNumber}
+                  onChange={(e) => setLicenseNumber(e.target.value)}
+                  className="h-12 rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Issuing state</Label>
+                <Input
+                  value={licenseState}
+                  onChange={(e) => setLicenseState(e.target.value)}
+                  placeholder="MD, DC, VA…"
+                  className="h-12 rounded-xl"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Expiration date</Label>
+              <Input
+                type="date"
+                value={licenseExpires}
+                onChange={(e) => setLicenseExpires(e.target.value)}
+                className="h-12 rounded-xl"
+              />
+            </div>
+            <DocumentUploader
+              url={licenseDocUrl}
+              onChange={setLicenseDocUrl}
+              label="License photo"
+            />
+          </div>
+
+          <div className="surface-card space-y-3 p-5">
+            <div>
+              <Label className="text-sm font-semibold">Insurance</Label>
+              <p className="text-xs text-muted-foreground">
+                Required before you can accept jobs. An admin will review it.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Insurance provider</Label>
+                <Input
+                  value={insuranceProvider}
+                  onChange={(e) => setInsuranceProvider(e.target.value)}
+                  className="h-12 rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Policy number</Label>
+                <Input
+                  value={insurancePolicy}
+                  onChange={(e) => setInsurancePolicy(e.target.value)}
+                  className="h-12 rounded-xl"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Expiration date</Label>
+              <Input
+                type="date"
+                value={insuranceExpires}
+                onChange={(e) => setInsuranceExpires(e.target.value)}
+                className="h-12 rounded-xl"
+              />
+            </div>
+            <DocumentUploader
+              url={insuranceDocUrl}
+              onChange={setInsuranceDocUrl}
+              label="Insurance certificate"
+            />
           </div>
 
           <Button

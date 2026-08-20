@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Camera, Loader2, LogOut, Star, Truck } from "lucide-react";
+import { AlertTriangle, Camera, Loader2, LogOut, ShieldCheck, Star, Truck } from "lucide-react";
 import { AppShell } from "@/components/haulr/AppShell";
+import { DocumentUploader } from "@/components/haulr/DocumentUploader";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMoverByUser } from "@/services/movers.service";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 
 function initials(name: string) {
   return name
@@ -21,6 +23,22 @@ function initials(name: string) {
     .join("")
     .toUpperCase();
 }
+
+function expiryStatus(
+  dateStr: string | null,
+): { label: string; tone: "ok" | "warn" | "bad" } | null {
+  if (!dateStr) return null;
+  const days = Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86_400_000);
+  if (days < 0) return { label: "Expired", tone: "bad" };
+  if (days <= 30) return { label: `Expires in ${days} day${days === 1 ? "" : "s"}`, tone: "warn" };
+  return { label: `Valid until ${dateStr}`, tone: "ok" };
+}
+
+const COMPLIANCE_LABEL: Record<string, string> = {
+  PENDING_REVIEW: "Pending review",
+  APPROVED: "Approved",
+  ACTION_REQUIRED: "Action required",
+};
 
 export const Route = createFileRoute("/account")({
   head: () => ({
@@ -34,12 +52,19 @@ export const Route = createFileRoute("/account")({
 
 function AccountPage() {
   const { user, profile, roles, loading: authLoading, refresh, signOut } = useAuth();
+  const queryClient = useQueryClient();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const [licenseExpires, setLicenseExpires] = useState("");
+  const [licenseDocUrl, setLicenseDocUrl] = useState<string | null>(null);
+  const [insuranceExpires, setInsuranceExpires] = useState("");
+  const [insuranceDocUrl, setInsuranceDocUrl] = useState<string | null>(null);
+  const [savingCompliance, setSavingCompliance] = useState(false);
 
   useEffect(() => {
     setFullName(profile?.full_name ?? "");
@@ -52,6 +77,34 @@ function AccountPage() {
     enabled: Boolean(user?.id) && roles.includes("mover"),
     queryFn: () => fetchMoverByUser(user!.id),
   });
+
+  useEffect(() => {
+    setLicenseExpires(mover?.license_expires_at ?? "");
+    setLicenseDocUrl(mover?.license_doc_url ?? null);
+    setInsuranceExpires(mover?.insurance_expires_at ?? "");
+    setInsuranceDocUrl(mover?.insurance_doc_url ?? null);
+  }, [mover]);
+
+  const saveCompliance = async () => {
+    if (!mover) return;
+    setSavingCompliance(true);
+    const { error } = await supabase
+      .from("mover_profiles")
+      .update({
+        license_expires_at: licenseExpires || null,
+        license_doc_url: licenseDocUrl,
+        insurance_expires_at: insuranceExpires || null,
+        insurance_doc_url: insuranceDocUrl,
+      })
+      .eq("id", mover.id);
+    setSavingCompliance(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Compliance documents updated");
+    void queryClient.invalidateQueries({ queryKey: ["mover-profile", user?.id] });
+  };
 
   const uploadAvatar = async (files: FileList | null) => {
     const file = files?.[0];
@@ -214,6 +267,102 @@ function AccountPage() {
               <span className="text-muted-foreground">Jobs completed</span>
               <span className="font-medium">{mover.jobs_completed}</span>
             </div>
+          </div>
+        )}
+
+        {roles.includes("mover") && mover && (
+          <div className="surface-card space-y-4 p-5 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                <ShieldCheck className="h-4 w-4" />
+                Compliance
+              </div>
+              <span
+                className={cn(
+                  "rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                  mover.compliance_status === "APPROVED" && "bg-success/15 text-success",
+                  mover.compliance_status === "PENDING_REVIEW" &&
+                    "bg-accent/20 text-accent-foreground",
+                  mover.compliance_status === "ACTION_REQUIRED" &&
+                    "bg-destructive/10 text-destructive",
+                )}
+              >
+                {COMPLIANCE_LABEL[mover.compliance_status] ?? mover.compliance_status}
+              </span>
+            </div>
+
+            {mover.compliance_notes && (
+              <div className="flex items-start gap-2 rounded-xl bg-secondary/60 px-3 py-2.5 text-sm">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-accent-foreground" />
+                <p>{mover.compliance_notes}</p>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <Label>License expiration</Label>
+              <Input
+                type="date"
+                value={licenseExpires}
+                onChange={(e) => setLicenseExpires(e.target.value)}
+                className="h-11 rounded-xl"
+              />
+              {expiryStatus(mover.license_expires_at) && (
+                <p
+                  className={cn(
+                    "text-xs",
+                    expiryStatus(mover.license_expires_at)?.tone === "bad" && "text-destructive",
+                    expiryStatus(mover.license_expires_at)?.tone === "warn" &&
+                      "text-accent-foreground",
+                    expiryStatus(mover.license_expires_at)?.tone === "ok" &&
+                      "text-muted-foreground",
+                  )}
+                >
+                  {expiryStatus(mover.license_expires_at)?.label}
+                </p>
+              )}
+              <DocumentUploader
+                url={licenseDocUrl}
+                onChange={setLicenseDocUrl}
+                label="License photo"
+              />
+            </div>
+
+            <div className="space-y-1.5 border-t border-border pt-4">
+              <Label>Insurance expiration</Label>
+              <Input
+                type="date"
+                value={insuranceExpires}
+                onChange={(e) => setInsuranceExpires(e.target.value)}
+                className="h-11 rounded-xl"
+              />
+              {expiryStatus(mover.insurance_expires_at) && (
+                <p
+                  className={cn(
+                    "text-xs",
+                    expiryStatus(mover.insurance_expires_at)?.tone === "bad" && "text-destructive",
+                    expiryStatus(mover.insurance_expires_at)?.tone === "warn" &&
+                      "text-accent-foreground",
+                    expiryStatus(mover.insurance_expires_at)?.tone === "ok" &&
+                      "text-muted-foreground",
+                  )}
+                >
+                  {expiryStatus(mover.insurance_expires_at)?.label}
+                </p>
+              )}
+              <DocumentUploader
+                url={insuranceDocUrl}
+                onChange={setInsuranceDocUrl}
+                label="Insurance certificate"
+              />
+            </div>
+
+            <Button
+              className="w-full rounded-xl"
+              disabled={savingCompliance}
+              onClick={() => void saveCompliance()}
+            >
+              {savingCompliance ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save documents"}
+            </Button>
           </div>
         )}
 

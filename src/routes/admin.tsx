@@ -10,6 +10,7 @@ import {
   Loader2,
   LogOut,
   Pause,
+  Search,
   Users,
   X,
 } from "lucide-react";
@@ -104,6 +105,32 @@ function AdminPage() {
   const revenue = jobs.reduce((sum, j) => sum + Number(j.platform_fee ?? 0), 0);
   const gmv = jobs.reduce((sum, j) => sum + Number(j.customer_price ?? 0), 0);
   const pendingMovers = movers.filter((m) => m.status === "PENDING" || m.status === "UNDER_REVIEW");
+
+  const [moverSearch, setMoverSearch] = useState("");
+  const [jobSearch, setJobSearch] = useState("");
+
+  const filteredMovers = movers.filter((m) => {
+    const q = moverSearch.trim().toLowerCase();
+    if (!q) return true;
+    return [m.full_name, m.business_name, m.email, m.service_area]
+      .filter(Boolean)
+      .some((field) => field!.toLowerCase().includes(q));
+  });
+
+  const filteredJobs = jobs.filter((j) => {
+    const q = jobSearch.trim().toLowerCase();
+    if (!q) return true;
+    return [
+      j.customer_name,
+      j.pickup_address,
+      j.dropoff_address,
+      j.reference,
+      j.mover?.full_name,
+      j.mover?.business_name,
+    ]
+      .filter(Boolean)
+      .some((field) => field!.toLowerCase().includes(q));
+  });
 
   const stats = [
     { label: "Total jobs", value: String(jobs.length) },
@@ -278,12 +305,23 @@ function AdminPage() {
 
           {tab === "movers" && (
             <div className="space-y-3">
-              {movers.length === 0 && (
+              <div className="relative max-w-sm">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={moverSearch}
+                  onChange={(e) => setMoverSearch(e.target.value)}
+                  placeholder="Search movers by name, email, or area…"
+                  className="h-10 rounded-xl pl-9"
+                />
+              </div>
+              {filteredMovers.length === 0 && (
                 <div className="surface-card p-8 text-center text-sm text-muted-foreground">
-                  No mover applications yet.
+                  {movers.length === 0
+                    ? "No mover applications yet."
+                    : "No movers match your search."}
                 </div>
               )}
-              {movers.map((mover) => (
+              {filteredMovers.map((mover) => (
                 <div key={mover.id} className="surface-card p-5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -362,61 +400,72 @@ function AdminPage() {
           )}
 
           {tab === "jobs" && (
-            <div className="surface-card overflow-x-auto p-0">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
-                    <th className="p-3">Customer</th>
-                    <th className="p-3">Route</th>
-                    <th className="p-3">Mover</th>
-                    <th className="p-3">Status</th>
-                    <th className="p-3 text-right">Price</th>
-                    <th className="p-3"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {jobs.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                        No jobs yet.
-                      </td>
+            <div className="space-y-3">
+              <div className="relative max-w-sm">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={jobSearch}
+                  onChange={(e) => setJobSearch(e.target.value)}
+                  placeholder="Search jobs by customer, address, or mover…"
+                  className="h-10 rounded-xl pl-9"
+                />
+              </div>
+              <div className="surface-card overflow-x-auto p-0">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
+                      <th className="p-3">Customer</th>
+                      <th className="p-3">Route</th>
+                      <th className="p-3">Mover</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3 text-right">Price</th>
+                      <th className="p-3"></th>
                     </tr>
-                  )}
-                  {jobs.map((job) => (
-                    <tr key={job.id} className="border-b border-border last:border-0">
-                      <td className="p-3">{job.customer_name}</td>
-                      <td className="max-w-[220px] p-3">
-                        <p className="truncate">{job.pickup_address}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          to {job.dropoff_address}
-                        </p>
-                      </td>
-                      <td className="p-3">
-                        {job.mover ? job.mover.business_name || job.mover.full_name : "—"}
-                      </td>
-                      <td className="p-3">
-                        <StatusPill status={job.status as JobStatus} />
-                      </td>
-                      <td className="p-3 text-right font-medium">
-                        {formatMoney(Number(job.customer_price ?? 0))}
-                      </td>
-                      <td className="p-3 text-right">
-                        {job.status !== "COMPLETED" && job.status !== "CANCELLED" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="rounded-xl text-destructive hover:text-destructive"
-                            disabled={actingOn === job.id}
-                            onClick={() => void cancelJob(job.id)}
-                          >
-                            Cancel
-                          </Button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filteredJobs.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                          {jobs.length === 0 ? "No jobs yet." : "No jobs match your search."}
+                        </td>
+                      </tr>
+                    )}
+                    {filteredJobs.map((job) => (
+                      <tr key={job.id} className="border-b border-border last:border-0">
+                        <td className="p-3">{job.customer_name}</td>
+                        <td className="max-w-[220px] p-3">
+                          <p className="truncate">{job.pickup_address}</p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            to {job.dropoff_address}
+                          </p>
+                        </td>
+                        <td className="p-3">
+                          {job.mover ? job.mover.business_name || job.mover.full_name : "—"}
+                        </td>
+                        <td className="p-3">
+                          <StatusPill status={job.status as JobStatus} />
+                        </td>
+                        <td className="p-3 text-right font-medium">
+                          {formatMoney(Number(job.customer_price ?? 0))}
+                        </td>
+                        <td className="p-3 text-right">
+                          {job.status !== "COMPLETED" && job.status !== "CANCELLED" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="rounded-xl text-destructive hover:text-destructive"
+                              disabled={actingOn === job.id}
+                              onClick={() => void cancelJob(job.id)}
+                            >
+                              Cancel
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 

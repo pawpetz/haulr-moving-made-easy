@@ -84,7 +84,7 @@ function AdminPage() {
         supabase
           .from("mover_profiles")
           .select(
-            "id, full_name, business_name, email, phone, service_area, status, rating, jobs_completed, total_earnings, created_at, compliance_status, compliance_notes, license_expires_at, license_doc_url, insurance_expires_at, insurance_doc_url",
+            "id, full_name, business_name, email, phone, service_area, status, rating, jobs_completed, total_earnings, created_at, compliance_status, compliance_notes, license_expires_at, license_doc_url, insurance_expires_at, insurance_doc_url, background_check_status, background_check_consent",
           )
           .order("created_at", { ascending: false }),
       ]);
@@ -192,6 +192,23 @@ function AdminPage() {
       toast.success(status === "APPROVED" ? "Compliance approved" : "Marked as action required");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not update compliance");
+    } finally {
+      setActingOn(null);
+    }
+  };
+
+  const changeBackgroundCheckStatus = async (moverId: string, status: "PASSED" | "FAILED") => {
+    setActingOn(`bgcheck-${moverId}`);
+    try {
+      const { error } = await supabase
+        .from("mover_profiles")
+        .update({ background_check_status: status })
+        .eq("id", moverId);
+      if (error) throw error;
+      void queryClient.invalidateQueries({ queryKey: ["admin-overview"] });
+      toast.success(`Background check marked ${status.toLowerCase()}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update background check");
     } finally {
       setActingOn(null);
     }
@@ -411,14 +428,36 @@ function AdminPage() {
                             ? "Action req."
                             : "Approved"}
                       </span>
+                      <span
+                        className={cn(
+                          "rounded-full px-3 py-1 text-xs font-semibold",
+                          mover.background_check_status === "PASSED" &&
+                            "bg-success/15 text-success",
+                          mover.background_check_status === "PENDING" &&
+                            "bg-accent/20 text-accent-foreground",
+                          mover.background_check_status === "NOT_STARTED" &&
+                            "bg-secondary text-muted-foreground",
+                          mover.background_check_status === "FAILED" &&
+                            "bg-destructive/10 text-destructive",
+                        )}
+                      >
+                        Background check: {mover.background_check_status.replaceAll("_", " ")}
+                      </span>
                     </div>
                   </div>
-                  <div className="mt-3 flex gap-2 border-t border-border pt-3">
+                  <div className="mt-3 flex flex-wrap gap-2 border-t border-border pt-3">
                     {mover.status !== "APPROVED" && (
                       <Button
                         size="sm"
                         className="rounded-xl"
-                        disabled={actingOn === mover.id}
+                        disabled={
+                          actingOn === mover.id || mover.background_check_status !== "PASSED"
+                        }
+                        title={
+                          mover.background_check_status !== "PASSED"
+                            ? "Background check must pass before approving this mover"
+                            : undefined
+                        }
                         onClick={() => void changeMoverStatus(mover.id, "APPROVED")}
                       >
                         <Check className="mr-1 h-3.5 w-3.5" /> Approve
@@ -506,7 +545,7 @@ function AdminPage() {
                       }
                       className="min-h-16 rounded-xl text-sm"
                     />
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         size="sm"
                         variant="outline"
@@ -524,6 +563,31 @@ function AdminPage() {
                         onClick={() => void changeComplianceStatus(mover.id, "ACTION_REQUIRED")}
                       >
                         Request info
+                      </Button>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+                      <span className="text-xs text-muted-foreground">
+                        Background check
+                        {!mover.background_check_consent && " — not yet consented"}:
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl"
+                        disabled={actingOn === `bgcheck-${mover.id}`}
+                        onClick={() => void changeBackgroundCheckStatus(mover.id, "PASSED")}
+                      >
+                        Mark passed
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl text-destructive hover:text-destructive"
+                        disabled={actingOn === `bgcheck-${mover.id}`}
+                        onClick={() => void changeBackgroundCheckStatus(mover.id, "FAILED")}
+                      >
+                        Mark failed
                       </Button>
                     </div>
                   </div>

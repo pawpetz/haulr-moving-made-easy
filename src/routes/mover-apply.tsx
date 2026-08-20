@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { AppShell } from "@/components/haulr/AppShell";
 import { DocumentUploader } from "@/components/haulr/DocumentUploader";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { VEHICLES } from "@/lib/constants";
@@ -44,6 +45,7 @@ function MoverApplyPage() {
   const [insurancePolicy, setInsurancePolicy] = useState("");
   const [insuranceExpires, setInsuranceExpires] = useState("");
   const [insuranceDocUrl, setInsuranceDocUrl] = useState<string | null>(null);
+  const [backgroundCheckConsent, setBackgroundCheckConsent] = useState(false);
 
   useEffect(() => {
     if (authLoading || user) return;
@@ -70,6 +72,9 @@ function MoverApplyPage() {
         insurance_policy: insurancePolicy || null,
         insurance_expires_at: insuranceExpires || null,
         insurance_doc_url: insuranceDocUrl,
+        background_check_consent: backgroundCheckConsent,
+        background_check_consented_at: backgroundCheckConsent ? new Date().toISOString() : null,
+        background_check_status: backgroundCheckConsent ? "PENDING" : "NOT_STARTED",
       })
       .select("id")
       .single();
@@ -257,13 +262,39 @@ function MoverApplyPage() {
             />
           </div>
 
+          <div className="surface-card space-y-3 p-5">
+            <div>
+              <Label className="text-sm font-semibold">Background check</Label>
+              <p className="text-xs text-muted-foreground">
+                Since movers enter customers' homes, Haulr requires a background check before you
+                can accept jobs.
+              </p>
+            </div>
+            <label className="flex items-start gap-3 rounded-xl border border-border p-3 text-sm">
+              <Checkbox
+                checked={backgroundCheckConsent}
+                onCheckedChange={(v) => setBackgroundCheckConsent(v === true)}
+                className="mt-0.5"
+              />
+              <span>
+                I authorize Haulr to run a background check as part of my application, and
+                understand I'll be notified before any adverse decision based on the results.
+              </span>
+            </label>
+          </div>
+
           <Button
             className="h-12 w-full rounded-xl text-base"
-            disabled={busy || !city}
+            disabled={busy || !city || !backgroundCheckConsent}
             onClick={() => void apply()}
           >
             Submit application
           </Button>
+          {!backgroundCheckConsent && (
+            <p className="text-center text-xs text-muted-foreground">
+              You must authorize a background check to submit your application.
+            </p>
+          )}
         </div>
       </div>
     </AppShell>

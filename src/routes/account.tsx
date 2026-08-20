@@ -291,6 +291,24 @@ function AccountPage() {
               </span>
             </div>
 
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Background check</span>
+              <span
+                className={cn(
+                  "rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                  mover.background_check_status === "PASSED" && "bg-success/15 text-success",
+                  mover.background_check_status === "PENDING" &&
+                    "bg-accent/20 text-accent-foreground",
+                  mover.background_check_status === "NOT_STARTED" &&
+                    "bg-secondary text-muted-foreground",
+                  mover.background_check_status === "FAILED" &&
+                    "bg-destructive/10 text-destructive",
+                )}
+              >
+                {mover.background_check_status.replaceAll("_", " ")}
+              </span>
+            </div>
+
             {mover.compliance_notes && (
               <div className="flex items-start gap-2 rounded-xl bg-secondary/60 px-3 py-2.5 text-sm">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-accent-foreground" />

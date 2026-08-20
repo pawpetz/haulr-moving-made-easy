@@ -303,6 +303,9 @@ export type Database = {
       mover_profiles: {
         Row: {
           address: string | null;
+          background_check_consent: boolean;
+          background_check_consented_at: string | null;
+          background_check_status: string;
           bio: string | null;
           business_name: string | null;
           compliance_notes: string | null;
@@ -334,6 +337,9 @@ export type Database = {
         };
         Insert: {
           address?: string | null;
+          background_check_consent?: boolean;
+          background_check_consented_at?: string | null;
+          background_check_status?: string;
           bio?: string | null;
           business_name?: string | null;
           compliance_notes?: string | null;
@@ -365,6 +371,9 @@ export type Database = {
         };
         Update: {
           address?: string | null;
+          background_check_consent?: boolean;
+          background_check_consented_at?: string | null;
+          background_check_status?: string;
           bio?: string | null;
           business_name?: string | null;
           compliance_notes?: string | null;

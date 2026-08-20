@@ -81,13 +81,25 @@ function AuthPage() {
     }
     const userId = data.user?.id;
     if (userId) {
-      await supabase.from("profiles").insert({
+      const { error: profileError } = await supabase.from("profiles").insert({
         user_id: userId,
         full_name: fullName,
         email,
         phone: phone || null,
       });
-      await supabase.from("user_roles").insert({ user_id: userId, role });
+      if (profileError) {
+        setBusy(false);
+        toast.error(`Account created, but profile setup failed: ${profileError.message}`);
+        return;
+      }
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role });
+      if (roleError) {
+        setBusy(false);
+        toast.error(`Account created, but role setup failed: ${roleError.message}`);
+        return;
+      }
     }
     setBusy(false);
     if (!data.session) {

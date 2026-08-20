@@ -2,10 +2,20 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Check, Loader2, Pause, X } from "lucide-react";
+import {
+  BarChart3,
+  Check,
+  DollarSign,
+  ClipboardList,
+  Loader2,
+  LogOut,
+  Pause,
+  Users,
+  X,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { AppShell } from "@/components/haulr/AppShell";
+import { Logo } from "@/components/haulr/Logo";
 import { StatusPill } from "@/components/haulr/StatusTracker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,11 +38,16 @@ export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
-const TABS = ["overview", "movers", "jobs", "pricing"] as const;
-type Tab = (typeof TABS)[number];
+const NAV = [
+  { key: "overview", label: "Overview", icon: BarChart3 },
+  { key: "movers", label: "Movers", icon: Users },
+  { key: "jobs", label: "Jobs", icon: ClipboardList },
+  { key: "pricing", label: "Pricing", icon: DollarSign },
+] as const;
+type Tab = (typeof NAV)[number]["key"];
 
 function AdminPage() {
-  const { user, primaryRole, loading: authLoading } = useAuth();
+  const { user, profile, primaryRole, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("overview");
@@ -160,208 +175,286 @@ function AdminPage() {
     );
   }
 
+  const activeLabel = NAV.find((n) => n.key === tab)?.label ?? "Overview";
+
   return (
-    <AppShell title="Admin" subtitle="Platform oversight for jobs, movers and pricing.">
-      <div className="mb-6 flex gap-1 overflow-x-auto border-b border-border">
-        {TABS.map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={cn(
-              "border-b-2 px-4 py-2.5 text-sm font-semibold capitalize transition-colors",
-              tab === t
-                ? "border-accent text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
-
-      {tab === "overview" && (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {stats.map((stat) => (
-            <div key={stat.label} className="surface-card p-5">
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
-              <p className="mt-2 text-2xl font-extrabold">{stat.value}</p>
-            </div>
-          ))}
+    <div className="flex min-h-screen bg-background">
+      {/* Sidebar — desktop only */}
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-card lg:flex">
+        <div className="px-5 py-5">
+          <Logo />
+          <span className="mt-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Admin
+          </span>
         </div>
-      )}
+        <nav className="flex-1 space-y-1 px-3">
+          {NAV.map((item) => {
+            const Icon = item.icon;
+            const active = tab === item.key;
+            return (
+              <button
+                key={item.key}
+                onClick={() => setTab(item.key)}
+                className={cn(
+                  "flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                  active
+                    ? "bg-secondary text-foreground"
+                    : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {item.label}
+                {item.key === "movers" && pendingMovers.length > 0 && (
+                  <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-bold text-accent-foreground">
+                    {pendingMovers.length}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+        <div className="border-t border-border p-3">
+          <div className="flex items-center justify-between gap-2 rounded-xl px-2 py-2">
+            <span className="truncate text-sm text-muted-foreground">
+              {profile?.full_name || "Admin"}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Sign out"
+              onClick={() => void signOut()}
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </aside>
 
-      {tab === "movers" && (
-        <div className="space-y-3">
-          {movers.length === 0 && (
-            <div className="surface-card p-8 text-center text-sm text-muted-foreground">
-              No mover applications yet.
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Top bar */}
+        <header className="sticky top-0 z-30 border-b border-border bg-card/90 px-4 py-4 backdrop-blur sm:px-6">
+          <div className="flex items-center justify-between lg:hidden">
+            <Logo />
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Sign out"
+              onClick={() => void signOut()}
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+          <h1 className="mt-3 text-xl font-bold sm:text-2xl lg:mt-0">{activeLabel}</h1>
+          {/* Mobile nav */}
+          <div className="mt-3 flex gap-1 overflow-x-auto lg:hidden">
+            {NAV.map((item) => (
+              <button
+                key={item.key}
+                onClick={() => setTab(item.key)}
+                className={cn(
+                  "shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
+                  tab === item.key
+                    ? "bg-secondary text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        <main className="flex-1 px-4 py-6 sm:px-6">
+          {tab === "overview" && (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {stats.map((stat) => (
+                <div key={stat.label} className="surface-card p-5">
+                  <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  <p className="mt-2 text-2xl font-extrabold">{stat.value}</p>
+                </div>
+              ))}
             </div>
           )}
-          {movers.map((mover) => (
-            <div key={mover.id} className="surface-card p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-semibold">{mover.business_name || mover.full_name}</p>
-                  {mover.business_name && (
-                    <p className="text-xs text-muted-foreground">{mover.full_name}</p>
-                  )}
-                  <p className="text-sm text-muted-foreground">
-                    {mover.email} · {mover.service_area || "No service area set"}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    ⭐ {Number(mover.rating ?? 5).toFixed(1)} · {mover.jobs_completed} jobs ·{" "}
-                    {formatMoney(Number(mover.total_earnings ?? 0))} earned
-                  </p>
-                </div>
-                <span
-                  className={cn(
-                    "shrink-0 rounded-full px-3 py-1 text-xs font-semibold",
-                    mover.status === "APPROVED" && "bg-success/15 text-success",
-                    (mover.status === "PENDING" || mover.status === "UNDER_REVIEW") &&
-                      "bg-accent/20 text-accent-foreground",
-                    (mover.status === "REJECTED" || mover.status === "SUSPENDED") &&
-                      "bg-destructive/10 text-destructive",
-                  )}
-                >
-                  {mover.status.replaceAll("_", " ")}
-                </span>
-              </div>
-              <div className="mt-3 flex gap-2 border-t border-border pt-3">
-                {mover.status !== "APPROVED" && (
-                  <Button
-                    size="sm"
-                    className="rounded-xl"
-                    disabled={actingOn === mover.id}
-                    onClick={() => void changeMoverStatus(mover.id, "APPROVED")}
-                  >
-                    <Check className="mr-1 h-3.5 w-3.5" /> Approve
-                  </Button>
-                )}
-                {mover.status !== "REJECTED" && mover.status !== "APPROVED" && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="rounded-xl"
-                    disabled={actingOn === mover.id}
-                    onClick={() => void changeMoverStatus(mover.id, "REJECTED")}
-                  >
-                    <X className="mr-1 h-3.5 w-3.5" /> Reject
-                  </Button>
-                )}
-                {mover.status === "APPROVED" && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="rounded-xl text-destructive hover:text-destructive"
-                    disabled={actingOn === mover.id}
-                    onClick={() => void changeMoverStatus(mover.id, "SUSPENDED")}
-                  >
-                    <Pause className="mr-1 h-3.5 w-3.5" /> Suspend
-                  </Button>
-                )}
-                {mover.status === "SUSPENDED" && (
-                  <Button
-                    size="sm"
-                    className="rounded-xl"
-                    disabled={actingOn === mover.id}
-                    onClick={() => void changeMoverStatus(mover.id, "APPROVED")}
-                  >
-                    Reinstate
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
-      {tab === "jobs" && (
-        <div className="surface-card overflow-x-auto p-0">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
-                <th className="p-3">Customer</th>
-                <th className="p-3">Route</th>
-                <th className="p-3">Mover</th>
-                <th className="p-3">Status</th>
-                <th className="p-3 text-right">Price</th>
-                <th className="p-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {jobs.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-muted-foreground">
-                    No jobs yet.
-                  </td>
-                </tr>
+          {tab === "movers" && (
+            <div className="space-y-3">
+              {movers.length === 0 && (
+                <div className="surface-card p-8 text-center text-sm text-muted-foreground">
+                  No mover applications yet.
+                </div>
               )}
-              {jobs.map((job) => (
-                <tr key={job.id} className="border-b border-border last:border-0">
-                  <td className="p-3">{job.customer_name}</td>
-                  <td className="max-w-[220px] p-3">
-                    <p className="truncate">{job.pickup_address}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      to {job.dropoff_address}
-                    </p>
-                  </td>
-                  <td className="p-3">
-                    {job.mover ? job.mover.business_name || job.mover.full_name : "—"}
-                  </td>
-                  <td className="p-3">
-                    <StatusPill status={job.status as JobStatus} />
-                  </td>
-                  <td className="p-3 text-right font-medium">
-                    {formatMoney(Number(job.customer_price ?? 0))}
-                  </td>
-                  <td className="p-3 text-right">
-                    {job.status !== "COMPLETED" && job.status !== "CANCELLED" && (
+              {movers.map((mover) => (
+                <div key={mover.id} className="surface-card p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold">{mover.business_name || mover.full_name}</p>
+                      {mover.business_name && (
+                        <p className="text-xs text-muted-foreground">{mover.full_name}</p>
+                      )}
+                      <p className="text-sm text-muted-foreground">
+                        {mover.email} · {mover.service_area || "No service area set"}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        ⭐ {Number(mover.rating ?? 5).toFixed(1)} · {mover.jobs_completed} jobs ·{" "}
+                        {formatMoney(Number(mover.total_earnings ?? 0))} earned
+                      </p>
+                    </div>
+                    <span
+                      className={cn(
+                        "shrink-0 rounded-full px-3 py-1 text-xs font-semibold",
+                        mover.status === "APPROVED" && "bg-success/15 text-success",
+                        (mover.status === "PENDING" || mover.status === "UNDER_REVIEW") &&
+                          "bg-accent/20 text-accent-foreground",
+                        (mover.status === "REJECTED" || mover.status === "SUSPENDED") &&
+                          "bg-destructive/10 text-destructive",
+                      )}
+                    >
+                      {mover.status.replaceAll("_", " ")}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex gap-2 border-t border-border pt-3">
+                    {mover.status !== "APPROVED" && (
+                      <Button
+                        size="sm"
+                        className="rounded-xl"
+                        disabled={actingOn === mover.id}
+                        onClick={() => void changeMoverStatus(mover.id, "APPROVED")}
+                      >
+                        <Check className="mr-1 h-3.5 w-3.5" /> Approve
+                      </Button>
+                    )}
+                    {mover.status !== "REJECTED" && mover.status !== "APPROVED" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl"
+                        disabled={actingOn === mover.id}
+                        onClick={() => void changeMoverStatus(mover.id, "REJECTED")}
+                      >
+                        <X className="mr-1 h-3.5 w-3.5" /> Reject
+                      </Button>
+                    )}
+                    {mover.status === "APPROVED" && (
                       <Button
                         size="sm"
                         variant="outline"
                         className="rounded-xl text-destructive hover:text-destructive"
-                        disabled={actingOn === job.id}
-                        onClick={() => void cancelJob(job.id)}
+                        disabled={actingOn === mover.id}
+                        onClick={() => void changeMoverStatus(mover.id, "SUSPENDED")}
                       >
-                        Cancel
+                        <Pause className="mr-1 h-3.5 w-3.5" /> Suspend
                       </Button>
                     )}
-                  </td>
-                </tr>
+                    {mover.status === "SUSPENDED" && (
+                      <Button
+                        size="sm"
+                        className="rounded-xl"
+                        disabled={actingOn === mover.id}
+                        onClick={() => void changeMoverStatus(mover.id, "APPROVED")}
+                      >
+                        Reinstate
+                      </Button>
+                    )}
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {tab === "pricing" && (
-        <div className="surface-card max-w-lg space-y-4 p-5">
-          {pricingLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
-          {pricingRules?.map((rule) => (
-            <div key={rule.key} className="space-y-1.5">
-              <Label>
-                {rule.label} <span className="text-xs text-muted-foreground">({rule.unit})</span>
-              </Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={pricingEdits[rule.key] ?? String(rule.value)}
-                onChange={(e) =>
-                  setPricingEdits((prev) => ({ ...prev, [rule.key]: e.target.value }))
-                }
-                className="h-11 rounded-xl"
-              />
             </div>
-          ))}
-          <Button
-            className="w-full rounded-xl"
-            disabled={savingPricing || Object.keys(pricingEdits).length === 0}
-            onClick={() => void savePricing()}
-          >
-            {savingPricing ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save pricing rules"}
-          </Button>
-        </div>
-      )}
-    </AppShell>
+          )}
+
+          {tab === "jobs" && (
+            <div className="surface-card overflow-x-auto p-0">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
+                    <th className="p-3">Customer</th>
+                    <th className="p-3">Route</th>
+                    <th className="p-3">Mover</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3 text-right">Price</th>
+                    <th className="p-3"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {jobs.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                        No jobs yet.
+                      </td>
+                    </tr>
+                  )}
+                  {jobs.map((job) => (
+                    <tr key={job.id} className="border-b border-border last:border-0">
+                      <td className="p-3">{job.customer_name}</td>
+                      <td className="max-w-[220px] p-3">
+                        <p className="truncate">{job.pickup_address}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          to {job.dropoff_address}
+                        </p>
+                      </td>
+                      <td className="p-3">
+                        {job.mover ? job.mover.business_name || job.mover.full_name : "—"}
+                      </td>
+                      <td className="p-3">
+                        <StatusPill status={job.status as JobStatus} />
+                      </td>
+                      <td className="p-3 text-right font-medium">
+                        {formatMoney(Number(job.customer_price ?? 0))}
+                      </td>
+                      <td className="p-3 text-right">
+                        {job.status !== "COMPLETED" && job.status !== "CANCELLED" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-xl text-destructive hover:text-destructive"
+                            disabled={actingOn === job.id}
+                            onClick={() => void cancelJob(job.id)}
+                          >
+                            Cancel
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {tab === "pricing" && (
+            <div className="surface-card max-w-lg space-y-4 p-5">
+              {pricingLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+              {pricingRules?.map((rule) => (
+                <div key={rule.key} className="space-y-1.5">
+                  <Label>
+                    {rule.label}{" "}
+                    <span className="text-xs text-muted-foreground">({rule.unit})</span>
+                  </Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={pricingEdits[rule.key] ?? String(rule.value)}
+                    onChange={(e) =>
+                      setPricingEdits((prev) => ({ ...prev, [rule.key]: e.target.value }))
+                    }
+                    className="h-11 rounded-xl"
+                  />
+                </div>
+              ))}
+              <Button
+                className="w-full rounded-xl"
+                disabled={savingPricing || Object.keys(pricingEdits).length === 0}
+                onClick={() => void savePricing()}
+              >
+                {savingPricing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Save pricing rules"
+                )}
+              </Button>
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
   );
 }

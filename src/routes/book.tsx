@@ -6,12 +6,12 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
+  ChevronLeft,
   CreditCard,
   Loader2,
   Plus,
   Trash2,
   Truck,
-  X,
 } from "lucide-react";
 import { Logo } from "@/components/haulr/Logo";
 import { PhotoUploader } from "@/components/haulr/PhotoUploader";
@@ -223,20 +223,20 @@ function BookPage() {
     <div className="flex min-h-screen flex-col bg-background pb-28">
       <header className="sticky top-0 z-30 border-b border-border bg-card/90 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-4">
-          <Logo />
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">
-              Step {step + 1} of {STEPS.length}
-            </span>
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              aria-label="Exit booking"
+              aria-label="Back to dashboard"
               onClick={() => void navigate({ to: "/dashboard" })}
               className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
-              <X className="h-4 w-4" />
+              <ChevronLeft className="h-5 w-5" />
             </button>
+            <Logo />
           </div>
+          <span className="text-sm text-muted-foreground">
+            Step {step + 1} of {STEPS.length}
+          </span>
         </div>
         <div className="h-1 w-full bg-secondary">
           <div

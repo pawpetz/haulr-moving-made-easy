@@ -259,7 +259,7 @@ function Landing() {
                       type="button"
                       onClick={() => setWhen(option.value)}
                       className={
-                        "flex h-12 items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition-colors " +
+                        "flex h-12 items-center justify-center gap-1.5 rounded-xl border px-2 text-xs font-semibold transition-colors sm:gap-2 sm:text-sm " +
                         (when === option.value
                           ? "border-accent bg-accent/15 text-foreground"
                           : "border-border bg-card text-muted-foreground")

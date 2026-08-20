@@ -146,20 +146,22 @@ function MoverPage() {
             <Switch checked={mover.is_online} onCheckedChange={(v) => void toggleOnline(v)} />
           </div>
           <div className="mt-5 grid grid-cols-3 gap-3">
-            <div>
+            <div className="min-w-0">
               <p className="text-xs uppercase tracking-wide text-ink-foreground/60">Earnings</p>
-              <p className="mt-1 font-mono text-xl font-bold">
+              <p className="mt-1 truncate font-mono text-base font-bold sm:text-xl">
                 {formatMoney(Number(mover.total_earnings ?? 0))}
               </p>
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs uppercase tracking-wide text-ink-foreground/60">Completed</p>
-              <p className="mt-1 font-mono text-xl font-bold">{mover.jobs_completed}</p>
+              <p className="mt-1 truncate font-mono text-base font-bold sm:text-xl">
+                {mover.jobs_completed}
+              </p>
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs uppercase tracking-wide text-ink-foreground/60">Rating</p>
-              <p className="mt-1 flex items-center gap-1 font-mono text-xl font-bold">
-                <Star className="h-4 w-4 fill-accent text-accent" />
+              <p className="mt-1 flex items-center gap-1 truncate font-mono text-base font-bold sm:text-xl">
+                <Star className="h-4 w-4 shrink-0 fill-accent text-accent" />
                 {Number(mover.rating ?? 5).toFixed(1)}
               </p>
             </div>

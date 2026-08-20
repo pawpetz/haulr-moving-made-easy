@@ -33,7 +33,7 @@ export const Route = createFileRoute("/account")({
 });
 
 function AccountPage() {
-  const { user, profile, primaryRole, loading: authLoading, refresh, signOut } = useAuth();
+  const { user, profile, roles, loading: authLoading, refresh, signOut } = useAuth();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -49,7 +49,7 @@ function AccountPage() {
 
   const { data: mover } = useQuery({
     queryKey: ["mover-profile", user?.id],
-    enabled: Boolean(user?.id) && primaryRole === "mover",
+    enabled: Boolean(user?.id) && roles.includes("mover"),
     queryFn: () => fetchMoverByUser(user!.id),
   });
 
@@ -193,7 +193,7 @@ function AccountPage() {
           </Button>
         </div>
 
-        {primaryRole === "mover" && mover && (
+        {roles.includes("mover") && mover && (
           <div className="surface-card space-y-3 p-5 sm:p-6">
             <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               <Truck className="h-4 w-4" />

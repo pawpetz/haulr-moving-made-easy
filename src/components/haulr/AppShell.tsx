@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import {
   ClipboardList,
@@ -11,8 +11,15 @@ import {
   User,
 } from "lucide-react";
 import { Logo } from "./Logo";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, type AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -39,6 +46,45 @@ const ADMIN_NAV: NavItem[] = [
   { to: "/account", label: "Account", icon: Settings },
 ];
 
+const ROLE_HOME: Record<AppRole, string> = {
+  customer: "/dashboard",
+  mover: "/mover",
+  admin: "/admin",
+};
+
+const ROLE_LABEL: Record<AppRole, string> = {
+  customer: "Customer",
+  mover: "Mover",
+  admin: "Admin",
+};
+
+function RoleSwitcher() {
+  const { roles, activeRole, setActiveRole } = useAuth();
+  const navigate = useNavigate();
+  if (roles.length <= 1) return null;
+
+  return (
+    <Select
+      value={activeRole}
+      onValueChange={(role) => {
+        setActiveRole(role as AppRole);
+        void navigate({ to: ROLE_HOME[role as AppRole] });
+      }}
+    >
+      <SelectTrigger className="h-8 w-auto gap-1.5 rounded-full border-none bg-secondary px-3 text-xs font-semibold">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent align="end">
+        {roles.map((role) => (
+          <SelectItem key={role} value={role}>
+            View as {ROLE_LABEL[role]}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 export function AppShell({
   children,
   title,
@@ -50,10 +96,10 @@ export function AppShell({
   subtitle?: string;
   action?: ReactNode;
 }) {
-  const { primaryRole, signOut, profile } = useAuth();
+  const { activeRole, signOut, profile } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const nav =
-    primaryRole === "admin" ? ADMIN_NAV : primaryRole === "mover" ? MOVER_NAV : CUSTOMER_NAV;
+    activeRole === "admin" ? ADMIN_NAV : activeRole === "mover" ? MOVER_NAV : CUSTOMER_NAV;
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-20 md:pb-0">
@@ -75,7 +121,7 @@ export function AppShell({
                 {item.label}
               </Link>
             ))}
-            {primaryRole === "customer" && (
+            {activeRole === "customer" && (
               <Link
                 to="/mover-apply"
                 className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
@@ -85,6 +131,7 @@ export function AppShell({
             )}
           </nav>
           <div className="flex items-center gap-2">
+            <RoleSwitcher />
             <span className="hidden text-sm text-muted-foreground sm:inline">
               {profile?.full_name || "Account"}
             </span>

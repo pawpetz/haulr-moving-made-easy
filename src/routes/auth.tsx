@@ -27,7 +27,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { user, primaryRole, loading } = useAuth();
+  const { user, activeRole, loading } = useAuth();
   const { redirect } = Route.useSearch();
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState("login");
@@ -44,10 +44,10 @@ function AuthPage() {
         return;
       }
       void navigate({
-        to: primaryRole === "admin" ? "/admin" : primaryRole === "mover" ? "/mover" : "/dashboard",
+        to: activeRole === "admin" ? "/admin" : activeRole === "mover" ? "/mover" : "/dashboard",
       });
     }
-  }, [loading, user, primaryRole, navigate, redirect]);
+  }, [loading, user, activeRole, navigate, redirect]);
 
   const signIn = async () => {
     setBusy(true);

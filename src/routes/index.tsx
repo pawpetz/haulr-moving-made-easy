@@ -87,7 +87,7 @@ const STEPS = [
 
 function Landing() {
   const navigate = useNavigate();
-  const { user, primaryRole } = useAuth();
+  const { user, activeRole } = useAuth();
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
   const [item, setItem] = useState("Couch");
@@ -118,9 +118,9 @@ function Landing() {
               <Button asChild size="sm">
                 <Link
                   to={
-                    primaryRole === "mover"
+                    activeRole === "mover"
                       ? "/mover"
-                      : primaryRole === "admin"
+                      : activeRole === "admin"
                         ? "/admin"
                         : "/dashboard"
                   }

@@ -19,6 +19,8 @@ interface AuthContextValue {
   profile: Profile | null;
   roles: AppRole[];
   primaryRole: AppRole;
+  activeRole: AppRole;
+  setActiveRole: (role: AppRole) => void;
   loading: boolean;
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -26,11 +28,16 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+function activeRoleKey(userId: string) {
+  return `haulr:active_role:${userId}`;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeRoleOverride, setActiveRoleOverride] = useState<AppRole | null>(null);
 
   const loadUserData = async (userId: string | undefined) => {
     if (!userId) {
@@ -74,27 +81,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined" || !session?.user?.id) {
+      setActiveRoleOverride(null);
+      return;
+    }
+    try {
+      const stored = window.localStorage.getItem(activeRoleKey(session.user.id)) as AppRole | null;
+      setActiveRoleOverride(stored && roles.includes(stored) ? stored : null);
+    } catch {
+      setActiveRoleOverride(null);
+    }
+  }, [session?.user?.id, roles]);
+
   const value = useMemo<AuthContextValue>(() => {
     const primaryRole: AppRole = roles.includes("admin")
       ? "admin"
       : roles.includes("mover")
         ? "mover"
         : "customer";
+    const activeRole = activeRoleOverride ?? primaryRole;
     return {
       user: session?.user ?? null,
       session,
       profile,
       roles,
       primaryRole,
+      activeRole,
+      setActiveRole: (role: AppRole) => {
+        if (!session?.user?.id || !roles.includes(role)) return;
+        setActiveRoleOverride(role);
+        try {
+          window.localStorage.setItem(activeRoleKey(session.user.id), role);
+        } catch {
+          // ignore storage failures (private browsing, etc.)
+        }
+      },
       loading,
       refresh: async () => loadUserData(session?.user?.id),
       signOut: async () => {
         await supabase.auth.signOut();
         setProfile(null);
         setRoles([]);
+        setActiveRoleOverride(null);
       },
     };
-  }, [session, profile, roles, loading]);
+  }, [session, profile, roles, loading, activeRoleOverride]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
